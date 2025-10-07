@@ -1,102 +1,147 @@
-import Image from "next/image";
+'use client';
+
+import Link from 'next/link';
+import { signIn } from "next-auth/react";
+import { ArrowRight, Video, Image, Music, Download } from 'lucide-react';
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const handleSignIn = () => {
+    signIn("google", { callbackUrl: "/dashboard/duprun" });
+  };
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  return (
+    <div className="min-h-screen bg-black font-[Poppins] text-white">
+      {/* Header */}
+      <header className="bg-black border-b border-gray-800 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-6 flex justify-between items-center">
+          <h1 className="text-3xl font-extrabold tracking-tight">DUPRUN</h1>
+          <nav className="flex space-x-6">
+            <Link href="/" className="text-gray-300 hover:text-white text-lg font-medium transition">Home</Link>
+            <Link href="#features" className="text-gray-300 hover:text-white text-lg font-medium transition">Features</Link>
+            <Link href="/about" className="text-gray-300 hover:text-white text-lg font-medium transition">About</Link>
+            <Link href="/contact" className="text-gray-300 hover:text-white text-lg font-medium transition">Contact</Link>
+            <button
+              onClick={handleSignIn}
+              className="bg-white text-black px-6 py-3 rounded-lg text-lg font-semibold hover:bg-gray-200 transition flex items-center gap-3"
+            >
+              Try DUPRUN <ArrowRight className="w-5 h-5" />
+            </button>
+          </nav>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+      </header>
+
+      {/* Hero Section */}
+      <section className="bg-black py-28">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 text-center">
+          <h1 className="text-5xl sm:text-6xl font-extrabold tracking-tight mb-6">Create Stunning Zoom Videos with DUPRUN</h1>
+          <p className="text-xl sm:text-2xl mb-10 max-w-3xl mx-auto text-gray-300">
+            Transform your images into engaging zoom videos with smooth transitions, custom zoom points, and background music in just a few clicks. Trusted by over 8,600 creators.
+          </p>
+          <button
+            onClick={handleSignIn}
+            className="bg-white text-black px-10 py-4 rounded-lg text-xl font-semibold hover:bg-gray-200 transition"
+          >
+            Get Started Now
+          </button>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section id="features" className="py-20 bg-black">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+          <h2 className="text-4xl font-extrabold text-white text-center mb-16">Why Choose DUPRUN?</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+            <div className="text-center p-8 bg-gray-900 rounded-xl shadow-lg">
+              <Video className="w-14 h-14 text-white mx-auto mb-5" />
+              <h3 className="text-2xl font-semibold text-white mb-3">Smooth Zoom Effects</h3>
+              <p className="text-gray-300 text-lg">Add custom zoom points to create dynamic, professional video transitions with ease.</p>
+            </div>
+            <div className="text-center p-8 bg-gray-900 rounded-xl shadow-lg">
+              <Image className="w-14 h-14 text-white mx-auto mb-5" />
+              <h3 className="text-2xl font-semibold text-white mb-3">Multiple Image Support</h3>
+              <p className="text-gray-300 text-lg">Combine multiple images into a single video with seamless slide transitions.</p>
+            </div>
+            <div className="text-center p-8 bg-gray-900 rounded-xl shadow-lg">
+              <Music className="w-14 h-14 text-white mx-auto mb-5" />
+              <h3 className="text-2xl font-semibold text-white mb-3">Add Background Music</h3>
+              <p className="text-gray-300 text-lg">Enhance your videos with custom audio tracks for a more engaging experience.</p>
+            </div>
+            <div className="text-center p-8 bg-gray-900 rounded-xl shadow-lg">
+              <Download className="w-14 h-14 text-white mx-auto mb-5" />
+              <h3 className="text-2xl font-semibold text-white mb-3">Easy Export</h3>
+              <p className="text-gray-300 text-lg">Download your videos in high-quality WebM format with a single click.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-20 bg-black">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+          <h2 className="text-4xl font-extrabold text-white text-center mb-16">What Our Users Say</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+            <div className="p-8 bg-gray-900 rounded-xl shadow-lg">
+              <p className="text-gray-300 text-lg mb-4">"DUPRUN made my tutorial videos look so professional with minimal effort. The zoom effects are a game-changer!"</p>
+              <p className="text-white font-semibold">Amit Sharma, Content Creator</p>
+            </div>
+            <div className="p-8 bg-gray-900 rounded-xl shadow-lg">
+              <p className="text-gray-300 text-lg mb-4">"The ability to add music and export in WebM format is so smooth. DUPRUN is my go-to for quick video edits."</p>
+              <p className="text-white font-semibold">Priya Patel, Educator</p>
+            </div>
+            <div className="p-8 bg-gray-900 rounded-xl shadow-lg">
+              <p className="text-gray-300 text-lg mb-4">"Combining multiple images into one video was so easy. DUPRUN saved me hours of editing time!"</p>
+              <p className="text-white font-semibold">Rahul Verma, Freelancer</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Call to Action Section */}
+      <section className="py-24 bg-black border-t border-gray-800">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 text-center">
+          <h2 className="text-4xl font-extrabold text-white mb-6">Ready to Create Your Next Video?</h2>
+          <p className="text-xl text-gray-300 mb-10 max-w-3xl mx-auto">
+            Join thousands of creators using DUPRUN to make professional zoom videos effortlessly. Start now and see the difference!
+          </p>
+          <button
+            onClick={handleSignIn}
+            className="bg-white text-black px-10 py-4 rounded-lg text-xl font-semibold hover:bg-gray-200 transition"
+          >
+            Start Creating Now
+          </button>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-black border-t border-gray-800 py-10">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-10">
+            <div>
+              <h3 className="text-xl font-semibold mb-5">DUPRUN</h3>
+              <p className="text-gray-300 text-lg">Create professional zoom videos effortlessly with DUPRUN.</p>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold mb-5">Quick Links</h3>
+              <ul className="space-y-3">
+                <li><Link href="/" className="text-gray-300 hover:text-white text-lg transition">Home</Link></li>
+                <li><Link href="#features" className="text-gray-300 hover:text-white text-lg transition">Features</Link></li>
+                <li><Link href="/about" className="text-gray-300 hover:text-white text-lg transition">About</Link></li>
+                <li><Link href="/contact" className="text-gray-300 hover:text-white text-lg transition">Contact</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold mb-5">Follow Us</h3>
+              <div className="flex space-x-6">
+                <a href="#" className="text-gray-300 hover:text-white text-lg transition">Twitter</a>
+                <a href="#" className="text-gray-300 hover:text-white text-lg transition">LinkedIn</a>
+                <a href="#" className="text-gray-300 hover:text-white text-lg transition">GitHub</a>
+              </div>
+            </div>
+          </div>
+          <div className="mt-10 text-center text-gray-300 text-lg">
+            &copy; {new Date().getFullYear()} DUPRUN. All rights reserved.
+          </div>
+        </div>
       </footer>
     </div>
   );
