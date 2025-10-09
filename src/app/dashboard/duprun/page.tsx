@@ -39,6 +39,8 @@ const ZoomVideoApp = () => {
   const [textFontFamily, setTextFontFamily] = useState('Poppins');
   const [textPadding, setTextPadding] = useState(10);
   const [textBorderRadius, setTextBorderRadius] = useState(5);
+  const [backgroundType, setBackgroundType] = useState('none'); // 'none', 'gradient1', 'gradient2', etc., or 'custom'
+  const [backgroundValue, setBackgroundValue] = useState(''); // for custom image URL or gradient string
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageRefs = useRef<Record<string, HTMLImageElement>>({});
@@ -47,10 +49,20 @@ const ZoomVideoApp = () => {
   const recordedChunks = useRef<Blob[]>([]);
   const audioRefs = useRef<Record<string, HTMLAudioElement>>({});
   const isRecordingRef = useRef<boolean>(false);
+  const backgroundImageRef = useRef<HTMLImageElement | null>(null);
 
   const fontFamilies = [
     'Arial', 'Roboto', 'Open Sans', 'Lato', 'Montserrat',
     'Poppins', 'Raleway', 'Inter', 'Noto Sans', 'Source Sans Pro'
+  ];
+
+  const gradientOptions = [
+    { value: 'none', label: 'None' },
+    { value: 'gradient1', label: 'Black to Gray' },
+    { value: 'gradient2', label: 'Blue to Purple' },
+    { value: 'gradient3', label: 'Green to Blue' },
+    { value: 'gradient4', label: 'Red to Orange' },
+    { value: 'custom', label: 'Custom Image' },
   ];
 
   const addSlide = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -86,6 +98,29 @@ const ZoomVideoApp = () => {
           audioRefs.current[slideId] = new Audio();
         }
         audioRefs.current[slideId].src = e.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    }
+    event.target.value = '';
+  };
+
+  const handleBackgroundChange = (type: string) => {
+    setBackgroundType(type);
+    if (type !== 'custom') {
+      setBackgroundValue('');
+      backgroundImageRef.current = null;
+    }
+  };
+
+  const handleCustomBackgroundUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setBackgroundValue(e.target?.result as string);
+        const img = new Image();
+        img.src = e.target?.result as string;
+        backgroundImageRef.current = img;
       };
       reader.readAsDataURL(file);
     }
@@ -187,6 +222,42 @@ const ZoomVideoApp = () => {
     ));
   };
 
+  const drawBackground = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+    if (backgroundType === 'none') return;
+
+    if (backgroundType === 'custom' && backgroundImageRef.current) {
+      ctx.drawImage(backgroundImageRef.current, 0, 0, width, height);
+    } else {
+      let gradient;
+      switch (backgroundType) {
+        case 'gradient1':
+          gradient = ctx.createLinearGradient(0, 0, 0, height);
+          gradient.addColorStop(0, '#000000');
+          gradient.addColorStop(1, '#434343');
+          break;
+        case 'gradient2':
+          gradient = ctx.createLinearGradient(0, 0, 0, height);
+          gradient.addColorStop(0, '#0000ff');
+          gradient.addColorStop(1, '#800080');
+          break;
+        case 'gradient3':
+          gradient = ctx.createLinearGradient(0, 0, 0, height);
+          gradient.addColorStop(0, '#008000');
+          gradient.addColorStop(1, '#0000ff');
+          break;
+        case 'gradient4':
+          gradient = ctx.createLinearGradient(0, 0, 0, height);
+          gradient.addColorStop(0, '#ff0000');
+          gradient.addColorStop(1, '#ffa500');
+          break;
+        default:
+          return;
+      }
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, width, height);
+    }
+  };
+
   const drawCursor = (ctx: CanvasRenderingContext2D, centerX: number, centerY: number) => {
     ctx.beginPath();
     switch (cursorType) {
@@ -241,6 +312,8 @@ const ZoomVideoApp = () => {
     if (!img) return;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    drawBackground(ctx, canvas.width, canvas.height);
     
     let currentZoom = 1;
     let centerX = canvas.width / 2;
@@ -384,7 +457,7 @@ const ZoomVideoApp = () => {
 
       drawCursor(ctx, centerX, centerY);
     }
-  }, [slides, isPlaying, zoomLevel, cursorType, textColor, textBgColor, textAnimation, textFontFamily, textPadding, textBorderRadius]);
+  }, [slides, isPlaying, zoomLevel, cursorType, textColor, textBgColor, textAnimation, textFontFamily, textPadding, textBorderRadius, backgroundType, backgroundValue]);
 
   const lerp = (start: number, end: number, t: number) => start + (end - start) * t;
 
@@ -527,7 +600,7 @@ const ZoomVideoApp = () => {
     }
   };
 
-  const startRecording = async () => {
+  const startRecording = () => {
     if (isRecordingRef.current) return;
     isRecordingRef.current = true;
     setIsRecording(true);
@@ -638,6 +711,17 @@ const ZoomVideoApp = () => {
   };
 
   useEffect(() => {
+    const savedSlides = localStorage.getItem('duprunSlides');
+    if (savedSlides) {
+      setSlides(JSON.parse(savedSlides));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('duprunSlides', JSON.stringify(slides));
+  }, [slides]);
+
+  useEffect(() => {
     if (isPlaying) {
       animate();
     }
@@ -687,7 +771,7 @@ const ZoomVideoApp = () => {
         drawFrame(ctx, currentSlideIndex, currentPointIndex, progress, slideTransition);
       }
     }
-  }, [currentSlideIndex, currentPointIndex, progress, slideTransition, slides, drawFrame, textColor, textBgColor, textAnimation, textFontFamily, textPadding, textBorderRadius]);
+  }, [currentSlideIndex, currentPointIndex, progress, slideTransition, slides, drawFrame, textColor, textBgColor, textAnimation, textFontFamily, textPadding, textBorderRadius, backgroundType, backgroundValue]);
 
   const totalZoomPoints = slides.reduce((sum, slide) => sum + slide.zoomPoints.length, 0);
 
@@ -868,6 +952,41 @@ const ZoomVideoApp = () => {
                     className="w-full p-2 bg-gray-800 text-white border border-gray-700 rounded-xl focus:outline-none focus:border-white transition"
                   />
                 </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800 shadow-2xl">
+              <h2 className="text-xl font-bold text-white mb-4">Background Settings</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-gray-300 block mb-1 font-medium">
+                    Background Type:
+                  </label>
+                  <select
+                    value={backgroundType}
+                    onChange={(e) => handleBackgroundChange(e.target.value)}
+                    className="w-full p-2 bg-gray-800 text-white border border-gray-700 rounded-xl focus:outline-none focus:border-white transition"
+                  >
+                    {gradientOptions.map(option => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
+                  </select>
+                </div>
+                {backgroundType === 'custom' && (
+                  <div>
+                    <label className="flex flex-col items-center justify-center w-full h-16 border-2 border-dashed border-gray-700 rounded-2xl cursor-pointer hover:border-white transition">
+                      <Upload className="w-5 h-5 text-gray-400 mb-1" />
+                      <span className="text-sm text-gray-300 font-medium">Upload Custom Background Image</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCustomBackgroundUpload}
+                        className="hidden"
+                      />
+                    </label>
+                    {backgroundValue && <p className="text-xs text-gray-500 mt-2">Custom background added</p>}
+                  </div>
+                )}
               </div>
             </div>
 
