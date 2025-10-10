@@ -3,8 +3,42 @@
 import Link from 'next/link';
 import { signIn } from "next-auth/react";
 import { ArrowRight, Video, Image, Music, Download } from 'lucide-react';
+import { useState, useEffect } from 'react';
+
+interface Plan {
+  id: number;
+  planName: string;
+  licenseId: number;
+  retailPrice: number;
+  salePrice: number;
+}
 
 export default function Home() {
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [error, setError] = useState<string>('');
+
+  // Fetch plans
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        const response = await fetch('/api/admin/plans');
+        if (!response.ok) {
+          throw new Error(`Failed to fetch plans: Status ${response.status}`);
+        }
+        const result = await response.json();
+        if (result.data) {
+          setPlans(result.data);
+        } else {
+          setError('No plans found');
+        }
+      } catch (err) {
+        console.error('Error fetching plans:', err);
+        setError(`Failed to load plans: ${err.message}`);
+      }
+    };
+    fetchPlans();
+  }, []);
+
   const handleSignIn = () => {
     signIn("google", { callbackUrl: "/dashboard/duprun" });
   };
@@ -72,6 +106,38 @@ export default function Home() {
               <p className="text-gray-300 text-lg">Download your videos in high-quality WebM format with a single click.</p>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Pricing Plans Section */}
+      <section id="pricing" className="py-20 bg-black">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+          <h2 className="text-4xl font-extrabold text-white text-center mb-16">Pricing Plans</h2>
+          {error ? (
+            <p className="text-red-400 text-center text-lg">{error}</p>
+          ) : plans.length === 0 ? (
+            <p className="text-gray-300 text-center text-lg">No plans available at the moment.</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+              {plans.map((plan) => (
+                <div key={plan.id} className="text-center p-8 bg-gray-900 rounded-xl shadow-lg">
+                  <h3 className="text-2xl font-semibold text-white mb-3">{plan.planName}</h3>
+                  <p className="text-gray-300 text-lg mb-4">
+                    <span className="text-3xl font-bold text-white">${plan.salePrice.toFixed(2)}</span>
+                    {plan.retailPrice !== plan.salePrice && (
+                      <span className="text-gray-500 line-through ml-2">${plan.retailPrice.toFixed(2)}</span>
+                    )}
+                  </p>
+                  <button
+                    onClick={handleSignIn}
+                    className="bg-white text-black px-6 py-3 rounded-lg text-lg font-semibold hover:bg-gray-200 transition"
+                  >
+                    Select Plan
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
