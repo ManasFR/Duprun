@@ -7,3 +7,7 @@
    *npx prisma init
 
 ye ek prisma folder ke andr schema.prisma file bana deta hai jiske andr ap pura table strrtuctre bana sakte ho jo jo table apko chaiye and then hit this command (npx prisma migrate dev --name init) is command ko hit krte hi vo table ban jayega and also isme Database Url use hota hai
+
+
+
+4.

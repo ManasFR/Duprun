@@ -55,3 +55,28 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
+
+
+model Admins {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
+
+model License {
+  id           Int      @id @default(autoincrement())
+  name         String
+  licenseCodes Json
+  status       String
+  plans        Plan[]   @relation("LicenseToPlan")
+}
+
+model Plan {
+  id           Int      @id @default(autoincrement())
+  planName     String
+  licenseId    Int      @map("license_id")
+  retailPrice  Float
+  salePrice    Float
+  license      License  @relation("LicenseToPlan", fields: [licenseId], references: [id])
+}
