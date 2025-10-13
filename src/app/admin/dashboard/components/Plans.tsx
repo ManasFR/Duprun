@@ -13,6 +13,7 @@ interface Plan {
   licenseId: number;
   retailPrice: number;
   salePrice: number;
+  features?: string[];
 }
 
 export default function Plans() {
@@ -22,6 +23,8 @@ export default function Plans() {
     retailPrice: '',
     salePrice: '',
   });
+  const [features, setFeatures] = useState<string[]>(['']);
+  const [showFeatures, setShowFeatures] = useState(false);
   const [licenses, setLicenses] = useState<License[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [message, setMessage] = useState('');
@@ -71,17 +74,36 @@ export default function Plans() {
     fetchPlans();
   }, []);
 
+  const handleAddFeature = () => {
+    setFeatures([...features, '']);
+  };
+
+  const handleRemoveFeature = (index: number) => {
+    const newFeatures = features.filter((_, i) => i !== index);
+    setFeatures(newFeatures.length > 0 ? newFeatures : ['']);
+  };
+
+  const handleFeatureChange = (index: number, value: string) => {
+    const newFeatures = [...features];
+    newFeatures[index] = value;
+    setFeatures(newFeatures);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setMessage('');
 
     try {
+      // Filter out empty features
+      const validFeatures = features.filter(f => f.trim() !== '');
+
       const payload = {
         planName: formData.planName,
         licenseId: parseInt(formData.licenseId),
         retailPrice: parseFloat(formData.retailPrice),
         salePrice: parseFloat(formData.salePrice),
+        features: validFeatures.length > 0 ? validFeatures : undefined,
       };
 
       console.log('Sending payload:', payload);
@@ -104,6 +126,8 @@ export default function Plans() {
       if (result.data) {
         setMessage('Plan created successfully!');
         setFormData({ planName: '', licenseId: '', retailPrice: '', salePrice: '' });
+        setFeatures(['']);
+        setShowFeatures(false);
         
         // Refresh plans
         const refreshed = await fetch('/api/admin/plans');
@@ -195,6 +219,55 @@ export default function Plans() {
             required
           />
         </div>
+
+        {/* Add Features Button */}
+        <div>
+          <button
+            type="button"
+            onClick={() => setShowFeatures(!showFeatures)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+          >
+            {showFeatures ? 'Hide Features' : 'Add Features'}
+          </button>
+        </div>
+
+        {/* Features Section */}
+        {showFeatures && (
+          <div className="space-y-3 bg-gray-800 p-4 rounded-lg border border-gray-700">
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-gray-300 font-semibold">Plan Features</label>
+              <button
+                type="button"
+                onClick={handleAddFeature}
+                className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 transition"
+              >
+                + Add Feature
+              </button>
+            </div>
+            {features.map((feature, index) => (
+              <div key={index} className="flex gap-2 items-center">
+                <span className="text-gray-400 min-w-[30px]">{index + 1}.</span>
+                <input
+                  type="text"
+                  value={feature}
+                  onChange={(e) => handleFeatureChange(index, e.target.value)}
+                  className="flex-1 p-2 bg-gray-900 text-white border border-gray-600 rounded-lg"
+                  placeholder={`Feature ${index + 1}`}
+                />
+                {features.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveFeature(index)}
+                    className="bg-red-600 text-white px-3 py-2 rounded hover:bg-red-700 transition"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
         <button
           type="submit"
           disabled={isLoading}
@@ -223,6 +296,7 @@ export default function Plans() {
                   <th className="px-4">License</th>
                   <th className="px-4">Retail Price</th>
                   <th className="px-4">Sale Price</th>
+                  <th className="px-4">Features</th>
                   <th className="px-4">Actions</th>
                 </tr>
               </thead>
@@ -235,6 +309,17 @@ export default function Plans() {
                     </td>
                     <td className="px-4">${plan.retailPrice.toFixed(2)}</td>
                     <td className="px-4">${plan.salePrice.toFixed(2)}</td>
+                    <td className="px-4">
+                      {plan.features && plan.features.length > 0 ? (
+                        <ul className="text-sm text-gray-300 list-disc list-inside">
+                          {plan.features.map((feature, idx) => (
+                            <li key={idx}>{feature}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <span className="text-gray-500">No features</span>
+                      )}
+                    </td>
                     <td className="px-4">
                       <button className="text-blue-400 hover:text-blue-300">Edit</button>
                       <button className="text-red-400 hover:text-red-300 ml-4">Delete</button>

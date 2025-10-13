@@ -128,6 +128,17 @@ export default function Home() {
                       <span className="text-gray-500 line-through ml-2">${plan.retailPrice.toFixed(2)}</span>
                     )}
                   </p>
+                  <div className="text-gray-300 text-lg mb-4">
+                    {plan.features && Array.isArray(plan.features) && (
+                      <ul className="list-disc list-inside">
+                        {plan.features.map((feature: string, index: number) => (
+                          <li key={index} className="text-white text-lg">
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                   <button
                     onClick={handleSignIn}
                     className="bg-white text-black px-6 py-3 rounded-lg text-lg font-semibold hover:bg-gray-200 transition"

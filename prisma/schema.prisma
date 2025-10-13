@@ -78,6 +78,6 @@ model Plan {
   licenseId    Int      @map("license_id")
   retailPrice  Float
   salePrice    Float
-  features     Json     
   license      License  @relation("LicenseToPlan", fields: [licenseId], references: [id])
+  features     Json?    // optional JSON array
 }
