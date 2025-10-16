@@ -13,6 +13,9 @@ interface Plan {
   licenseId: number;
   retailPrice: number;
   salePrice: number;
+  videos: number;
+  watermark: number;
+  noWatermark: number;
   features?: string[];
 }
 
@@ -22,6 +25,9 @@ export default function Plans() {
     licenseId: '',
     retailPrice: '',
     salePrice: '',
+    videos: '',
+    watermark: '0',
+    noWatermark: '0',
   });
   const [features, setFeatures] = useState<string[]>(['']);
   const [showFeatures, setShowFeatures] = useState(false);
@@ -30,21 +36,13 @@ export default function Plans() {
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Fetch licenses for dropdown and plans for table
   useEffect(() => {
     const fetchLicenses = async () => {
       try {
         const response = await fetch('/api/admin/license');
-        if (!response.ok) {
-          throw new Error(`Failed to fetch licenses: Status ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`Failed to fetch licenses: Status ${response.status}`);
         const result = await response.json();
-        console.log('Fetched licenses:', result);
-        if (result.data) {
-          setLicenses(result.data);
-        } else {
-          setMessage('No licenses found');
-        }
+        if (result.data) setLicenses(result.data);
       } catch (error: any) {
         console.error('Error fetching licenses:', error);
         setMessage(`Failed to load licenses: ${error.message}`);
@@ -54,16 +52,9 @@ export default function Plans() {
     const fetchPlans = async () => {
       try {
         const response = await fetch('/api/admin/plans');
-        if (!response.ok) {
-          throw new Error(`Failed to fetch plans: Status ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`Failed to fetch plans: Status ${response.status}`);
         const result = await response.json();
-        console.log('Fetched plans:', result);
-        if (result.data) {
-          setPlans(result.data);
-        } else {
-          setMessage('No plans found');
-        }
+        if (result.data) setPlans(result.data);
       } catch (error: any) {
         console.error('Error fetching plans:', error);
         setMessage(`Failed to load plans: ${error.message}`);
@@ -74,9 +65,7 @@ export default function Plans() {
     fetchPlans();
   }, []);
 
-  const handleAddFeature = () => {
-    setFeatures([...features, '']);
-  };
+  const handleAddFeature = () => setFeatures([...features, '']);
 
   const handleRemoveFeature = (index: number) => {
     const newFeatures = features.filter((_, i) => i !== index);
@@ -89,58 +78,46 @@ export default function Plans() {
     setFeatures(newFeatures);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setIsLoading(true);
     setMessage('');
 
     try {
-      // Filter out empty features
       const validFeatures = features.filter(f => f.trim() !== '');
-
       const payload = {
         planName: formData.planName,
         licenseId: parseInt(formData.licenseId),
         retailPrice: parseFloat(formData.retailPrice),
         salePrice: parseFloat(formData.salePrice),
+        videos: parseInt(formData.videos) || 0,
+        watermark: parseInt(formData.watermark),
+        noWatermark: parseInt(formData.noWatermark),
         features: validFeatures.length > 0 ? validFeatures : undefined,
       };
 
-      console.log('Sending payload:', payload);
-
       const response = await fetch('/api/admin/plans', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
       const result = await response.json();
-      console.log('Server response:', result);
-
-      if (!response.ok) {
-        throw new Error(result.details || result.error || `Failed to create plan: Status ${response.status}`);
-      }
+      if (!response.ok) throw new Error(result.details || result.error || `Failed to create plan`);
 
       if (result.data) {
         setMessage('Plan created successfully!');
-        setFormData({ planName: '', licenseId: '', retailPrice: '', salePrice: '' });
+        setFormData({ planName: '', licenseId: '', retailPrice: '', salePrice: '', videos: '', watermark: '0', noWatermark: '0' });
         setFeatures(['']);
         setShowFeatures(false);
         
-        // Refresh plans
         const refreshed = await fetch('/api/admin/plans');
         if (refreshed.ok) {
           const refreshedData = await refreshed.json();
           setPlans(refreshedData.data);
         }
-      } else {
-        setMessage(result.error || 'Something went wrong');
       }
     } catch (error: any) {
-      console.error('Error creating plan:', error);
-      setMessage(`Error creating plan: ${error.message}`);
+      setMessage(`Error: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -154,10 +131,9 @@ export default function Plans() {
   return (
     <section className="bg-gray-900 p-8 rounded-lg shadow-lg">
       <h2 className="text-2xl font-semibold mb-4">Manage Plans</h2>
-      <p className="text-gray-300 text-lg">Create and manage subscription plans.</p>
+      <p className="text-gray-300 text-lg mb-6">Create and manage subscription plans.</p>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+      <div className="space-y-4 bg-gray-800 p-6 rounded-lg">
         <div>
           <label className="text-gray-300 block mb-1">Plan Name</label>
           <input
@@ -165,65 +141,97 @@ export default function Plans() {
             name="planName"
             value={formData.planName}
             onChange={handleChange}
-            className="w-full p-2 bg-gray-800 text-white border border-gray-700 rounded-lg"
+            className="w-full p-2 bg-gray-900 text-white border border-gray-700 rounded-lg"
             placeholder="Enter plan name"
-            required
           />
         </div>
+
         <div>
           <label className="text-gray-300 block mb-1">License</label>
           <select
             name="licenseId"
             value={formData.licenseId}
             onChange={handleChange}
-            className="w-full p-2 bg-gray-800 text-white border border-gray-700 rounded-lg"
-            required
+            className="w-full p-2 bg-gray-900 text-white border border-gray-700 rounded-lg"
           >
-            <option value="" disabled>Select a license</option>
-            {licenses.length === 0 ? (
-              <option disabled>No licenses available</option>
-            ) : (
-              licenses.map((license) => (
-                <option key={license.id} value={license.id}>
-                  {license.name}
-                </option>
-              ))
-            )}
+            <option value="">Select a license</option>
+            {licenses.map((license) => (
+              <option key={license.id} value={license.id}>{license.name}</option>
+            ))}
           </select>
         </div>
-        <div>
-          <label className="text-gray-300 block mb-1">Retail Price ($)</label>
-          <input
-            type="number"
-            name="retailPrice"
-            value={formData.retailPrice}
-            onChange={handleChange}
-            className="w-full p-2 bg-gray-800 text-white border border-gray-700 rounded-lg"
-            placeholder="Enter retail price"
-            min="0"
-            step="0.01"
-            required
-          />
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="text-gray-300 block mb-1">Retail Price ($)</label>
+            <input
+              type="number"
+              name="retailPrice"
+              value={formData.retailPrice}
+              onChange={handleChange}
+              className="w-full p-2 bg-gray-900 text-white border border-gray-700 rounded-lg"
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
+          </div>
+          <div>
+            <label className="text-gray-300 block mb-1">Sale Price ($)</label>
+            <input
+              type="number"
+              name="salePrice"
+              value={formData.salePrice}
+              onChange={handleChange}
+              className="w-full p-2 bg-gray-900 text-white border border-gray-700 rounded-lg"
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
+          </div>
         </div>
+
         <div>
-          <label className="text-gray-300 block mb-1">Sale Price ($)</label>
+          <label className="text-gray-300 block mb-1">Number of Videos</label>
           <input
             type="number"
-            name="salePrice"
-            value={formData.salePrice}
+            name="videos"
+            value={formData.videos}
             onChange={handleChange}
-            className="w-full p-2 bg-gray-800 text-white border border-gray-700 rounded-lg"
-            placeholder="Enter sale price"
+            className="w-full p-2 bg-gray-900 text-white border border-gray-700 rounded-lg"
+            placeholder="e.g., 10, 20, 30"
             min="0"
-            step="0.01"
-            required
           />
         </div>
 
-        {/* Add Features Button */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="text-gray-300 block mb-1">Watermark</label>
+            <select
+              name="watermark"
+              value={formData.watermark}
+              onChange={handleChange}
+              className="w-full p-2 bg-gray-900 text-white border border-gray-700 rounded-lg"
+            >
+              <option value="0">No</option>
+              <option value="1">Yes</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-gray-300 block mb-1">No Watermark</label>
+            <select
+              name="noWatermark"
+              value={formData.noWatermark}
+              onChange={handleChange}
+              className="w-full p-2 bg-gray-900 text-white border border-gray-700 rounded-lg"
+            >
+              <option value="0">No</option>
+              <option value="1">Yes</option>
+            </select>
+          </div>
+        </div>
+
         <div>
           <button
-            type="button"
             onClick={() => setShowFeatures(!showFeatures)}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
           >
@@ -231,13 +239,11 @@ export default function Plans() {
           </button>
         </div>
 
-        {/* Features Section */}
         {showFeatures && (
-          <div className="space-y-3 bg-gray-800 p-4 rounded-lg border border-gray-700">
+          <div className="space-y-3 bg-gray-900 p-4 rounded-lg border border-gray-700">
             <div className="flex justify-between items-center mb-2">
               <label className="text-gray-300 font-semibold">Plan Features</label>
               <button
-                type="button"
                 onClick={handleAddFeature}
                 className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 transition"
               >
@@ -251,12 +257,11 @@ export default function Plans() {
                   type="text"
                   value={feature}
                   onChange={(e) => handleFeatureChange(index, e.target.value)}
-                  className="flex-1 p-2 bg-gray-900 text-white border border-gray-600 rounded-lg"
+                  className="flex-1 p-2 bg-gray-800 text-white border border-gray-600 rounded-lg"
                   placeholder={`Feature ${index + 1}`}
                 />
                 {features.length > 1 && (
                   <button
-                    type="button"
                     onClick={() => handleRemoveFeature(index)}
                     className="bg-red-600 text-white px-3 py-2 rounded hover:bg-red-700 transition"
                   >
@@ -269,20 +274,20 @@ export default function Plans() {
         )}
 
         <button
-          type="submit"
+          onClick={handleSubmit}
           disabled={isLoading}
-          className="bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-white text-black px-6 py-2 rounded-lg hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? 'Creating...' : 'Create Plan'}
         </button>
+        
         {message && (
           <p className={message.includes('Error') || message.includes('Failed') ? 'text-red-400' : 'text-green-400'}>
             {message}
           </p>
         )}
-      </form>
+      </div>
 
-      {/* Plans Table */}
       <div className="mt-8">
         <h3 className="text-xl font-semibold mb-4">Available Plans</h3>
         {plans.length === 0 ? (
@@ -294,8 +299,11 @@ export default function Plans() {
                 <tr className="text-gray-400 border-b border-gray-700">
                   <th className="py-2 px-4">Plan Name</th>
                   <th className="px-4">License</th>
-                  <th className="px-4">Retail Price</th>
-                  <th className="px-4">Sale Price</th>
+                  <th className="px-4">Retail</th>
+                  <th className="px-4">Sale</th>
+                  <th className="px-4">Videos</th>
+                  <th className="px-4">Watermark</th>
+                  <th className="px-4">No WM</th>
                   <th className="px-4">Features</th>
                   <th className="px-4">Actions</th>
                 </tr>
@@ -305,10 +313,21 @@ export default function Plans() {
                   <tr key={plan.id} className="border-t border-gray-700 hover:bg-gray-800">
                     <td className="py-3 px-4">{plan.planName}</td>
                     <td className="px-4">
-                      {licenses.find((license) => license.id === plan.licenseId)?.name || 'Unknown'}
+                      {licenses.find((l) => l.id === plan.licenseId)?.name || 'Unknown'}
                     </td>
                     <td className="px-4">${plan.retailPrice.toFixed(2)}</td>
                     <td className="px-4">${plan.salePrice.toFixed(2)}</td>
+                    <td className="px-4">{plan.videos}</td>
+                    <td className="px-4">
+                      <span className={plan.watermark === 1 ? 'text-yellow-400' : 'text-gray-500'}>
+                        {plan.watermark === 1 ? 'Yes' : 'No'}
+                      </span>
+                    </td>
+                    <td className="px-4">
+                      <span className={plan.noWatermark === 1 ? 'text-green-400' : 'text-gray-500'}>
+                        {plan.noWatermark === 1 ? 'Yes' : 'No'}
+                      </span>
+                    </td>
                     <td className="px-4">
                       {plan.features && plan.features.length > 0 ? (
                         <ul className="text-sm text-gray-300 list-disc list-inside">

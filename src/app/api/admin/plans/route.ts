@@ -6,13 +6,13 @@ export async function POST(request: Request) {
   let body: any;
   try {
     body = await request.json();
-    const { planName, licenseId, retailPrice, salePrice, features } = body;
+    const { planName, licenseId, retailPrice, salePrice, features, videos, watermark, noWatermark } = body;
 
-    console.log('Received data:', { planName, licenseId, retailPrice, salePrice, features });
+    console.log('Received data:', { planName, licenseId, retailPrice, salePrice, features, videos, watermark, noWatermark });
 
     if (!planName || licenseId === undefined || retailPrice === undefined || salePrice === undefined) {
       return NextResponse.json(
-        { error: 'All fields are required', details: { planName, licenseId, retailPrice, salePrice } },
+        { error: 'Required fields missing', details: { planName, licenseId, retailPrice, salePrice } },
         { status: 400 }
       );
     }
@@ -20,6 +20,9 @@ export async function POST(request: Request) {
     const parsedLicenseId = parseInt(licenseId);
     const parsedRetailPrice = parseFloat(retailPrice);
     const parsedSalePrice = parseFloat(salePrice);
+    const parsedVideos = videos !== undefined ? parseInt(videos) : 0;
+    const parsedWatermark = watermark !== undefined ? parseInt(watermark) : 0;
+    const parsedNoWatermark = noWatermark !== undefined ? parseInt(noWatermark) : 0;
 
     if (isNaN(parsedLicenseId) || !Number.isInteger(parsedLicenseId)) {
       return NextResponse.json({ error: 'License ID must be an integer' }, { status: 400 });
@@ -27,11 +30,16 @@ export async function POST(request: Request) {
     if (isNaN(parsedRetailPrice) || isNaN(parsedSalePrice)) {
       return NextResponse.json({ error: 'Prices must be numbers' }, { status: 400 });
     }
+    if (isNaN(parsedVideos) || parsedVideos < 0) {
+      return NextResponse.json({ error: 'Videos must be a positive number' }, { status: 400 });
+    }
+    if (![0, 1].includes(parsedWatermark) || ![0, 1].includes(parsedNoWatermark)) {
+      return NextResponse.json({ error: 'Watermark fields must be 0 or 1' }, { status: 400 });
+    }
 
     const existingLicense = await prisma.license.findUnique({ where: { id: parsedLicenseId } });
     if (!existingLicense) return NextResponse.json({ error: 'Invalid license ID' }, { status: 400 });
 
-    // Ensure features is a valid array for JSON
     let parsedFeatures: string[] = [];
     if (features) {
       if (!Array.isArray(features)) {
@@ -46,7 +54,10 @@ export async function POST(request: Request) {
         licenseId: parsedLicenseId,
         retailPrice: parsedRetailPrice,
         salePrice: parsedSalePrice,
-        features: parsedFeatures.length ? parsedFeatures : [], // JSON array
+        videos: parsedVideos,
+        watermark: parsedWatermark,
+        noWatermark: parsedNoWatermark,
+        features: parsedFeatures.length ? parsedFeatures : [],
       } as Prisma.PlanUncheckedCreateInput,
     });
 
@@ -57,7 +68,6 @@ export async function POST(request: Request) {
   }
 }
 
-
 export async function GET() {
   try {
     const plans = await prisma.plan.findMany({
@@ -67,7 +77,10 @@ export async function GET() {
         licenseId: true,
         retailPrice: true,
         salePrice: true,
-        features:true
+        videos: true,
+        watermark: true,
+        noWatermark: true,
+        features: true,
       },
       orderBy: {
         id: 'desc',
