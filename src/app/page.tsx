@@ -1,9 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { ArrowRight, Video, Image, Music, Download } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import LicenseValidate from "./license_validate";
+
 
 interface Plan {
   id: number;
@@ -14,6 +16,9 @@ interface Plan {
 }
 
 export default function Home() {
+  const { data: session } = useSession();
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [showModal, setShowModal] = useState(false);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [error, setError] = useState<string>('');
 
@@ -41,6 +46,15 @@ export default function Home() {
 
   const handleSignIn = () => {
     signIn("google", { callbackUrl: "/dashboard/duprun" });
+  };
+
+    const handleSelectPlan = (plan: Plan) => {
+    if (!session) {
+      handleSignIn(); // redirect to Google login
+      return;
+    }
+    setSelectedPlan(plan);
+    setShowModal(true);
   };
 
   return (
@@ -109,48 +123,54 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Pricing Plans Section */}
-      <section id="pricing" className="py-20 bg-black">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
-          <h2 className="text-4xl font-extrabold text-white text-center mb-16">Pricing Plans</h2>
-          {error ? (
-            <p className="text-red-400 text-center text-lg">{error}</p>
-          ) : plans.length === 0 ? (
-            <p className="text-gray-300 text-center text-lg">No plans available at the moment.</p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
-              {plans.map((plan) => (
-                <div key={plan.id} className="text-center p-8 bg-gray-900 rounded-xl shadow-lg">
-                  <h3 className="text-2xl font-semibold text-white mb-3">{plan.planName}</h3>
-                  <p className="text-gray-300 text-lg mb-4">
-                    <span className="text-3xl font-bold text-white">${plan.salePrice.toFixed(2)}</span>
-                    {plan.retailPrice !== plan.salePrice && (
-                      <span className="text-gray-500 line-through ml-2">${plan.retailPrice.toFixed(2)}</span>
-                    )}
-                  </p>
-                  <div className="text-gray-300 text-lg mb-4">
-                    {plan.features && Array.isArray(plan.features) && (
-                      <ul className="list-disc list-inside">
-                        {plan.features.map((feature: string, index: number) => (
-                          <li key={index} className="text-white text-lg">
-                            {feature}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                  <button
-                    onClick={handleSignIn}
-                    className="bg-white text-black px-6 py-3 rounded-lg text-lg font-semibold hover:bg-gray-200 transition"
-                  >
-                    Select Plan
-                  </button>
-                </div>
-              ))}
+{/* Pricing Plans Section */}
+<section id="pricing" className="py-20 bg-black">
+  <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+    <h2 className="text-4xl font-extrabold text-white text-center mb-16">Pricing Plans</h2>
+    {error ? (
+      <p className="text-red-400 text-center text-lg">{error}</p>
+    ) : plans.length === 0 ? (
+      <p className="text-gray-300 text-center text-lg">No plans available at the moment.</p>
+    ) : (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+        {plans.map((plan) => (
+          <div key={plan.id} className="text-center p-8 bg-gray-900 rounded-xl shadow-lg">
+            <h3 className="text-2xl font-semibold text-white mb-3">{plan.planName}</h3>
+            <p className="text-gray-300 text-lg mb-4">
+              <span className="text-3xl font-bold text-white">${plan.salePrice.toFixed(2)}</span>
+              {plan.retailPrice !== plan.salePrice && (
+                <span className="text-gray-500 line-through ml-2">${plan.retailPrice.toFixed(2)}</span>
+              )}
+            </p>
+
+            <div className="text-gray-300 text-lg mb-4">
+              {plan.features && Array.isArray(plan.features) && (
+                <ul className="list-disc list-inside">
+                  {plan.features.map((feature: string, index: number) => (
+                    <li key={index} className="text-white text-lg">{feature}</li>
+                  ))}
+                </ul>
+              )}
             </div>
-          )}
-        </div>
-      </section>
+
+            <button
+              onClick={() => handleSelectPlan(plan)}
+              className="bg-white text-black px-6 py-3 rounded-lg text-lg font-semibold hover:bg-gray-200 transition"
+            >
+              Select Plan
+            </button>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+
+  {/* Render modal once at component level */}
+  {showModal && selectedPlan && (
+    <LicenseValidate plan={selectedPlan} onClose={() => setShowModal(false)} />
+  )}
+</section>
+
 
       {/* Testimonials Section */}
       <section className="py-20 bg-black">

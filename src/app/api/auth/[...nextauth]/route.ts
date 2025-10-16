@@ -1,5 +1,8 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
 
 const handler = NextAuth({
   providers: [
@@ -14,14 +17,32 @@ const handler = NextAuth({
     error: '/',
   },
   callbacks: {
+    async signIn({ user, account, profile }) {
+      // Check if user exists in DB
+      const existingUser = await prisma.user.findUnique({
+        where: { email: user.email },
+      });
+
+      if (!existingUser) {
+        // Create new user
+        await prisma.user.create({
+          data: {
+            name: user.name,
+            email: user.email!,
+            image: user.image,
+            emailVerified: user.emailVerified,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        });
+      }
+
+      return true;
+    },
     async redirect({ url, baseUrl }) {
-      // Agar URL /dashboard/duprun hai to use directly return karo
       if (url.startsWith("/dashboard/duprun")) return `${baseUrl}${url}`;
-      // Agar url relative hai to baseUrl prepend karo
       if (url.startsWith("/")) return `${baseUrl}${url}`;
-      // Agar url same origin pe hai to use karo
       if (new URL(url).origin === baseUrl) return url;
-      // Default: dashboard pe bhej do
       return `${baseUrl}/dashboard/duprun`;
     },
     async session({ session, token }) {
