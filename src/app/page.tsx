@@ -10,7 +10,7 @@ import LicenseValidate from "./license_validate";
 interface Plan {
   id: number;
   planName: string;
-  licenseId: number;
+  license_id: number;
   retailPrice: number;
   salePrice: number;
 }

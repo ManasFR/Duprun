@@ -10,7 +10,7 @@ interface License {
 interface Plan {
   id: number;
   planName: string;
-  licenseId: number;
+  license_id: number;
   retailPrice: number;
   salePrice: number;
   videos: number;
@@ -22,7 +22,7 @@ interface Plan {
 export default function Plans() {
   const [formData, setFormData] = useState({
     planName: '',
-    licenseId: '',
+    license_id: '',
     retailPrice: '',
     salePrice: '',
     videos: '',
@@ -86,7 +86,7 @@ export default function Plans() {
       const validFeatures = features.filter(f => f.trim() !== '');
       const payload = {
         planName: formData.planName,
-        licenseId: parseInt(formData.licenseId),
+        license_id: parseInt(formData.license_id),
         retailPrice: parseFloat(formData.retailPrice),
         salePrice: parseFloat(formData.salePrice),
         videos: parseInt(formData.videos) || 0,
@@ -106,7 +106,7 @@ export default function Plans() {
 
       if (result.data) {
         setMessage('Plan created successfully!');
-        setFormData({ planName: '', licenseId: '', retailPrice: '', salePrice: '', videos: '', watermark: '0', noWatermark: '0' });
+        setFormData({ planName: '', license_id: '', retailPrice: '', salePrice: '', videos: '', watermark: '0', noWatermark: '0' });
         setFeatures(['']);
         setShowFeatures(false);
         
@@ -149,8 +149,8 @@ export default function Plans() {
         <div>
           <label className="text-gray-300 block mb-1">License</label>
           <select
-            name="licenseId"
-            value={formData.licenseId}
+            name="license_id"
+            value={formData.license_id}
             onChange={handleChange}
             className="w-full p-2 bg-gray-900 text-white border border-gray-700 rounded-lg"
           >
@@ -313,7 +313,7 @@ export default function Plans() {
                   <tr key={plan.id} className="border-t border-gray-700 hover:bg-gray-800">
                     <td className="py-3 px-4">{plan.planName}</td>
                     <td className="px-4">
-                      {licenses.find((l) => l.id === plan.licenseId)?.name || 'Unknown'}
+                      {licenses.find((l) => l.id === plan.license_id)?.name || 'Unknown'}
                     </td>
                     <td className="px-4">${plan.retailPrice.toFixed(2)}</td>
                     <td className="px-4">${plan.salePrice.toFixed(2)}</td>
