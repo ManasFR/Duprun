@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Play, Pause, Download, Trash2, Upload, Plus, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
 
-// Define TypeScript interfaces
 interface ZoomPoint {
   id: number;
   x: number;
@@ -18,6 +17,16 @@ interface Slide {
   zoomPoints: ZoomPoint[];
   title: string;
   audio: string | null;
+}
+
+interface PlanLimits {
+  hasAccess: boolean;
+  videosUsed: number;
+  videosLimit: number;
+  videosRemaining: number;
+  watermark: boolean;
+  noWatermark: boolean;
+  planName?: string;
 }
 
 const ZoomVideoApp = () => {
@@ -39,8 +48,10 @@ const ZoomVideoApp = () => {
   const [textFontFamily, setTextFontFamily] = useState('Poppins');
   const [textPadding, setTextPadding] = useState(10);
   const [textBorderRadius, setTextBorderRadius] = useState(5);
-  const [backgroundType, setBackgroundType] = useState('none'); // 'none', 'gradient1', 'gradient2', etc., or 'custom'
-  const [backgroundValue, setBackgroundValue] = useState(''); // for custom image URL or gradient string
+  const [backgroundType, setBackgroundType] = useState('none');
+  const [backgroundValue, setBackgroundValue] = useState('');
+  const [planLimits, setPlanLimits] = useState<PlanLimits | null>(null);
+  const [showLimitError, setShowLimitError] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageRefs = useRef<Record<string, HTMLImageElement>>({});
@@ -64,6 +75,32 @@ const ZoomVideoApp = () => {
     { value: 'gradient4', label: 'Red to Orange' },
     { value: 'custom', label: 'Custom Image' },
   ];
+
+  // Fetch plan limits on component mount
+  useEffect(() => {
+    fetchPlanLimits();
+  }, []);
+
+  const fetchPlanLimits = async () => {
+    try {
+      const res = await fetch('/api/user/check-export-limit');
+      const data = await res.json();
+      if (data.success) {
+        setPlanLimits(data);
+      } else {
+        setPlanLimits({
+          hasAccess: false,
+          videosUsed: 0,
+          videosLimit: 0,
+          videosRemaining: 0,
+          watermark: true,
+          noWatermark: false,
+        });
+      }
+    } catch (err) {
+      console.error('Failed to fetch plan limits:', err);
+    }
+  };
 
   const addSlide = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -258,6 +295,18 @@ const ZoomVideoApp = () => {
     }
   };
 
+  const drawWatermark = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+    if (!planLimits || planLimits.noWatermark) return;
+    
+    ctx.save();
+    ctx.globalAlpha = 0.3;
+    ctx.font = 'bold 40px Poppins';
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'right';
+    ctx.fillText('DUPRUN', width - 20, height - 20);
+    ctx.restore();
+  };
+
   const drawCursor = (ctx: CanvasRenderingContext2D, centerX: number, centerY: number) => {
     ctx.beginPath();
     switch (cursorType) {
@@ -385,6 +434,11 @@ const ZoomVideoApp = () => {
     
     ctx.restore();
     
+    // Draw watermark if needed (only during recording/playing)
+    if (isPlaying || isRecordingRef.current) {
+      drawWatermark(ctx, canvas.width, canvas.height);
+    }
+    
     if (isPlaying && pointIndex < slide.zoomPoints.length) {
       const text = slide.zoomPoints[pointIndex].text;
       if (text) {
@@ -457,7 +511,7 @@ const ZoomVideoApp = () => {
 
       drawCursor(ctx, centerX, centerY);
     }
-  }, [slides, isPlaying, zoomLevel, cursorType, textColor, textBgColor, textAnimation, textFontFamily, textPadding, textBorderRadius, backgroundType, backgroundValue]);
+  }, [slides, isPlaying, zoomLevel, cursorType, textColor, textBgColor, textAnimation, textFontFamily, textPadding, textBorderRadius, backgroundType, backgroundValue, planLimits]);
 
   const lerp = (start: number, end: number, t: number) => start + (end - start) * t;
 
@@ -633,12 +687,12 @@ const ZoomVideoApp = () => {
       }
     };
 
-    mediaRecorderRef.current.onstop = () => {
+    mediaRecorderRef.current.onstop = async () => {
       const blob = new Blob(recordedChunks.current, { type: 'video/webm' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'multi-slide-zoom-video.webm';
+      a.download = 'duprun-video.webm';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -649,6 +703,20 @@ const ZoomVideoApp = () => {
       });
       isRecordingRef.current = false;
       setIsRecording(false);
+
+      // Record export in database
+      try {
+        const res = await fetch('/api/user/record-export', {
+          method: 'POST',
+        });
+        const data = await res.json();
+        if (data.success) {
+          // Refresh plan limits
+          await fetchPlanLimits();
+        }
+      } catch (err) {
+        console.error('Failed to record export:', err);
+      }
     };
 
     mediaRecorderRef.current.start();
@@ -662,9 +730,16 @@ const ZoomVideoApp = () => {
     }
   };
 
-  const createAndDownloadVideo = () => {
+  const createAndDownloadVideo = async () => {
     const hasAnyZoomPoints = slides.some(slide => slide.zoomPoints.length > 0);
     if (!hasAnyZoomPoints || isRecordingRef.current) return;
+    
+    // Check plan limits before recording
+    if (!planLimits || !planLimits.hasAccess) {
+      setShowLimitError(true);
+      setTimeout(() => setShowLimitError(false), 5000);
+      return;
+    }
     
     startRecording();
     startAnimation();
@@ -786,7 +861,35 @@ const ZoomVideoApp = () => {
           <p className="text-lg text-gray-300">
             Create smooth zoom videos with multiple images
           </p>
+          {planLimits && (
+            <div className="mt-4 inline-block bg-gray-900 px-6 py-3 rounded-2xl border border-gray-800">
+              <p className="text-sm text-gray-300">
+                {planLimits.planName && <span className="font-semibold text-white">{planLimits.planName} Plan</span>}
+                {planLimits.hasAccess ? (
+                  <span className="ml-2">
+                    📹 <span className="font-bold text-white">{planLimits.videosRemaining}</span> / {planLimits.videosLimit} videos remaining this month
+                  </span>
+                ) : (
+                  <span className="ml-2 text-red-400 font-semibold">⚠️ No active plan or limit reached</span>
+                )}
+              </p>
+            </div>
+          )}
         </div>
+
+        {showLimitError && (
+          <div className="mb-6 bg-red-900/30 border border-red-500 rounded-2xl p-4 flex items-center gap-3">
+            <AlertCircle className="w-6 h-6 text-red-400" />
+            <div>
+              <p className="font-semibold text-red-400">Export Limit Reached</p>
+              <p className="text-sm text-gray-300">
+                {planLimits?.videosLimit === 0 
+                  ? 'Please purchase a plan to export videos.' 
+                  : `You've reached your monthly limit of ${planLimits?.videosLimit} videos. Upgrade your plan or wait for next month.`}
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="col-span-1 space-y-6">
@@ -1133,12 +1236,18 @@ const ZoomVideoApp = () => {
 
                 <button
                   onClick={createAndDownloadVideo}
-                  disabled={totalZoomPoints === 0 || isPlaying || isRecording}
-                  className={`w-full ${totalZoomPoints === 0 || isPlaying || isRecording ? 'bg-gray-800 cursor-not-allowed' : 'bg-white text-black hover:bg-gray-200'} py-2 px-4 rounded-2xl font-semibold flex items-center justify-center gap-2 transition shadow-md`}
+                  disabled={totalZoomPoints === 0 || isPlaying || isRecording || (planLimits && !planLimits.hasAccess)}
+                  className={`w-full ${totalZoomPoints === 0 || isPlaying || isRecording || (planLimits && !planLimits.hasAccess) ? 'bg-gray-800 cursor-not-allowed' : 'bg-white text-black hover:bg-gray-200'} py-2 px-4 rounded-2xl font-semibold flex items-center justify-center gap-2 transition shadow-md`}
                 >
                   <Download className="w-4 h-4" />
-                  {isRecording ? 'Recording...' : 'Create & Download Full Video'}
+                  {isRecording ? 'Recording...' : 'Create & Download Video'}
                 </button>
+                
+                {planLimits && !planLimits.noWatermark && (
+                  <p className="text-xs text-gray-500 text-center">
+                    ⚠️ Exported videos will include DUPRUN watermark
+                  </p>
+                )}
               </div>
 
               {(isPlaying || progress > 0) && (

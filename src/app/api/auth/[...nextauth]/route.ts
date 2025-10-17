@@ -24,13 +24,14 @@ const handler = NextAuth({
       });
 
       if (!existingUser) {
-        // Create new user
+        // Create new user with default plan_id 0
         await prisma.user.create({
           data: {
             name: user.name,
             email: user.email!,
             image: user.image,
             emailVerified: user.emailVerified,
+            plan_id: 0, // Default value as integer
             createdAt: new Date(),
             updatedAt: new Date(),
           },
@@ -45,7 +46,25 @@ const handler = NextAuth({
       if (new URL(url).origin === baseUrl) return url;
       return `${baseUrl}/dashboard/duprun`;
     },
+    async jwt({ token, user }) {
+      // Add user's plan_id to the token
+      if (user) {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: user.email! },
+          select: { plan_id: true, id: true },
+        });
+        
+        token.planId = dbUser?.plan_id;
+        token.userId = dbUser?.id;
+      }
+      return token;
+    },
     async session({ session, token }) {
+      // Add plan_id to session
+      if (session.user) {
+        session.user.planId = token.planId as string;
+        session.user.userId = token.userId as string;
+      }
       return session;
     },
   },
