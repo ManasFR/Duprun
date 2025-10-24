@@ -2,8 +2,21 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 
+// Define the expected shape of the request body
+interface PlanRequestBody {
+  planName: string;
+  license_id: string | number;
+  retailPrice: string | number;
+  salePrice: string | number;
+  features?: string[];
+  videos?: string | number;
+  watermark?: string | number;
+  noWatermark?: string | number;
+}
+
 export async function POST(request: Request) {
-  let body: any;
+  // Initialize body to avoid TS2454
+  let body: PlanRequestBody = {} as PlanRequestBody;
   try {
     body = await request.json();
     const { planName, license_id, retailPrice, salePrice, features, videos, watermark, noWatermark } = body;
@@ -17,12 +30,12 @@ export async function POST(request: Request) {
       );
     }
 
-    const parsedlicense_id = parseInt(license_id);
-    const parsedRetailPrice = parseFloat(retailPrice);
-    const parsedSalePrice = parseFloat(salePrice);
-    const parsedVideos = videos !== undefined ? parseInt(videos) : 0;
-    const parsedWatermark = watermark !== undefined ? parseInt(watermark) : 0;
-    const parsedNoWatermark = noWatermark !== undefined ? parseInt(noWatermark) : 0;
+    const parsedlicense_id = parseInt(String(license_id));
+    const parsedRetailPrice = parseFloat(String(retailPrice));
+    const parsedSalePrice = parseFloat(String(salePrice));
+    const parsedVideos = videos !== undefined ? parseInt(String(videos)) : 0;
+    const parsedWatermark = watermark !== undefined ? parseInt(String(watermark)) : 0;
+    const parsedNoWatermark = noWatermark !== undefined ? parseInt(String(noWatermark)) : 0;
 
     if (isNaN(parsedlicense_id) || !Number.isInteger(parsedlicense_id)) {
       return NextResponse.json({ error: 'License ID must be an integer' }, { status: 400 });
@@ -58,13 +71,15 @@ export async function POST(request: Request) {
         watermark: parsedWatermark,
         noWatermark: parsedNoWatermark,
         features: parsedFeatures.length ? parsedFeatures : [],
-      } as Prisma.PlanUncheckedCreateInput,
+      } as Prisma.planUncheckedCreateInput,
     });
 
     return NextResponse.json({ message: 'Plan created', data: newPlan }, { status: 201 });
-  } catch (error: any) {
-    console.error('POST error:', error, 'body:', body);
-    return NextResponse.json({ error: 'Failed to create plan', details: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    // Type-safe error handling
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('POST error:', error, 'body:', body || 'No body available');
+    return NextResponse.json({ error: 'Failed to create plan', details: errorMessage }, { status: 500 });
   }
 }
 
@@ -91,13 +106,15 @@ export async function GET() {
       { message: 'List of plans', data: plans },
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
+    // Type-safe error handling
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('Error fetching plans:', {
-      message: error.message,
-      stack: error.stack,
+      message: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
     });
     return NextResponse.json(
-      { error: 'Failed to fetch plans', details: error.message },
+      { error: 'Failed to fetch plans', details: errorMessage },
       { status: 500 }
     );
   }

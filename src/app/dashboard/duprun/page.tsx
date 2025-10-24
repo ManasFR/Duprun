@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Play, Pause, Download, Trash2, Upload, Plus, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Play, Pause, Download, Trash2, Upload, Plus, RotateCcw, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
 
 interface ZoomPoint {
   id: number;
@@ -61,6 +61,7 @@ const ZoomVideoApp = () => {
   const audioRefs = useRef<Record<string, HTMLAudioElement>>({});
   const isRecordingRef = useRef<boolean>(false);
   const backgroundImageRef = useRef<HTMLImageElement | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
 
   const fontFamilies = [
     'Arial', 'Roboto', 'Open Sans', 'Lato', 'Montserrat',
@@ -296,8 +297,9 @@ const ZoomVideoApp = () => {
   };
 
   const drawWatermark = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+    // Only show watermark if planLimits is not null and noWatermark is false
     if (!planLimits || planLimits.noWatermark) return;
-    
+
     ctx.save();
     ctx.globalAlpha = 0.3;
     ctx.font = 'bold 40px Poppins';
@@ -664,12 +666,20 @@ const ZoomVideoApp = () => {
     const canvasStream = canvas.captureStream(30);
     const audioStreams: MediaStream[] = [];
 
-    slides.forEach((slide, index) => {
+    // Initialize AudioContext for audio processing
+    audioContextRef.current = new AudioContext();
+    const audioContext = audioContextRef.current;
+
+    slides.forEach((slide) => {
       if (slide.audio && audioRefs.current[slide.id]) {
         const audio = audioRefs.current[slide.id];
         audio.currentTime = 0;
-        const stream = audio.captureStream();
-        if (stream) audioStreams.push(stream);
+        // Create a MediaElementAudioSourceNode for the audio
+        const source = audioContext.createMediaElementSource(audio);
+        const destination = audioContext.createMediaStreamDestination();
+        source.connect(destination);
+        source.connect(audioContext.destination); // Also connect to speakers for playback
+        audioStreams.push(destination.stream);
       }
     });
 
@@ -701,6 +711,11 @@ const ZoomVideoApp = () => {
         audio.pause();
         audio.currentTime = 0;
       });
+      // Close AudioContext
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+        audioContextRef.current = null;
+      }
       isRecordingRef.current = false;
       setIsRecording(false);
 
@@ -879,7 +894,7 @@ const ZoomVideoApp = () => {
 
         {showLimitError && (
           <div className="mb-6 bg-red-900/30 border border-red-500 rounded-2xl p-4 flex items-center gap-3">
-            <AlertCircle className="w-6 h-6 text-red-400" />
+            <AlertTriangle className="w-6 h-6 text-red-400" />
             <div>
               <p className="font-semibold text-red-400">Export Limit Reached</p>
               <p className="text-sm text-gray-300">
@@ -1234,14 +1249,7 @@ const ZoomVideoApp = () => {
                   </button>
                 </div>
 
-                <button
-                  onClick={createAndDownloadVideo}
-                  disabled={totalZoomPoints === 0 || isPlaying || isRecording || (planLimits && !planLimits.hasAccess)}
-                  className={`w-full ${totalZoomPoints === 0 || isPlaying || isRecording || (planLimits && !planLimits.hasAccess) ? 'bg-gray-800 cursor-not-allowed' : 'bg-white text-black hover:bg-gray-200'} py-2 px-4 rounded-2xl font-semibold flex items-center justify-center gap-2 transition shadow-md`}
-                >
-                  <Download className="w-4 h-4" />
-                  {isRecording ? 'Recording...' : 'Create & Download Video'}
-                </button>
+                
                 
                 {planLimits && !planLimits.noWatermark && (
                   <p className="text-xs text-gray-500 text-center">

@@ -31,10 +31,11 @@ export async function POST(request: Request) {
       { message: 'Licenses generated successfully', data: newLicense },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error generating licenses:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return NextResponse.json(
-      { error: 'Something went wrong', details: error.message },
+      { error: 'Something went wrong', details: errorMessage },
       { status: 500 }
     );
   }
@@ -61,10 +62,11 @@ export async function GET() {
       { message: 'List of licenses', data: parsedLicenses },
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error fetching licenses:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return NextResponse.json(
-      { error: 'Something went wrong', details: error.message },
+      { error: 'Something went wrong', details: errorMessage },
       { status: 500 }
     );
   }

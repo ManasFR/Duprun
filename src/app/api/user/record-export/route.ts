@@ -10,7 +10,7 @@ interface ExportCount {
 
 const prisma = new PrismaClient();
 
-export async function GET() {
+export async function POST() {
   try {
     // Get logged-in user session
     const session = await getServerSession(authOptions);
@@ -35,17 +35,12 @@ export async function GET() {
       );
     }
 
-    // If plan_id is 0, user has no plan
+    // If plan_id is 0, user has no plan - deny export
     if (user.plan_id === 0) {
       return NextResponse.json({
         success: false,
         message: "No active plan. Please purchase a plan.",
-        hasAccess: false,
-        videosUsed: 0,
-        videosLimit: 0,
-        videosRemaining: 0,
-        watermark: true,
-      });
+      }, { status: 403 });
     }
 
     // Get plan details
@@ -53,10 +48,7 @@ export async function GET() {
       where: { id: user.plan_id },
       select: { 
         id: true,
-        planName: true,
-        videos: true, 
-        watermark: true, 
-        noWatermark: true 
+        videos: true,
       },
     });
 
@@ -72,33 +64,46 @@ export async function GET() {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
 
-    // Count exports this month using raw SQL
+    // Count exports this month
     const exportsResult: ExportCount[] = await prisma.$queryRaw`
       SELECT COUNT(*) as count 
       FROM videoexports 
-      WHERE userId = ${user.id} 
-      AND exportedAt >= ${startOfMonth} 
-      AND exportedAt <= ${endOfMonth}
+      WHERE "userId" = ${user.id} 
+      AND "exportedAt" >= ${startOfMonth} 
+      AND "exportedAt" <= ${endOfMonth}
     `;
     
     const exportsThisMonth = Number(exportsResult[0]?.count || 0);
 
-    const videosRemaining = plan.videos - exportsThisMonth;
-    const hasAccess = exportsThisMonth < plan.videos;
+    // Check if user has exceeded limit
+    if (exportsThisMonth >= plan.videos) {
+      return NextResponse.json({
+        success: false,
+        message: "Monthly export limit reached. Please upgrade your plan or wait for next month.",
+      }, { status: 403 });
+    }
+
+    // Record the export in database using direct SQL
+    const exportId = crypto.randomUUID();
+    await prisma.$executeRaw`
+      INSERT INTO videoexports (id, "userId", "planId", "exportedAt")
+      VALUES (${exportId}, ${user.id}, ${user.plan_id}, NOW())
+    `;
+
+    // Return updated stats
+    const newExportsCount = exportsThisMonth + 1;
+    const videosRemaining = plan.videos - newExportsCount;
 
     return NextResponse.json({
       success: true,
-      hasAccess,
-      videosUsed: exportsThisMonth,
+      message: "Export recorded successfully",
+      videosUsed: newExportsCount,
       videosLimit: plan.videos,
       videosRemaining: Math.max(0, videosRemaining),
-      watermark: plan.watermark === 1,
-      noWatermark: plan.noWatermark === 1,
-      planName: plan.planName,
     });
 
   } catch (err: unknown) {
-    console.error("Check export limit error:", err);
+    console.error("Record export error:", err);
     return NextResponse.json(
       { success: false, message: "Server error" }, 
       { status: 500 }

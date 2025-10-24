@@ -52,7 +52,9 @@ export async function POST(req: Request) {
     }
 
     // Step 3: Parse license codes
-    const codes = JSON.parse(license.licenseCodes || "[]");
+    const codes = JSON.parse(
+      typeof license.licenseCodes === "string" ? license.licenseCodes : "[]"
+    );
 
     // Step 4: Check if provided code exists
     const isValid = codes.includes(licenseCode);

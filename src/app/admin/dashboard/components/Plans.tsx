@@ -43,9 +43,10 @@ export default function Plans() {
         if (!response.ok) throw new Error(`Failed to fetch licenses: Status ${response.status}`);
         const result = await response.json();
         if (result.data) setLicenses(result.data);
-      } catch (error: any) {
+      } catch (error) {
         console.error('Error fetching licenses:', error);
-        setMessage(`Failed to load licenses: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        setMessage(`Failed to load licenses: ${errorMessage}`);
       }
     };
 
@@ -55,9 +56,10 @@ export default function Plans() {
         if (!response.ok) throw new Error(`Failed to fetch plans: Status ${response.status}`);
         const result = await response.json();
         if (result.data) setPlans(result.data);
-      } catch (error: any) {
+      } catch (error) {
         console.error('Error fetching plans:', error);
-        setMessage(`Failed to load plans: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        setMessage(`Failed to load plans: ${errorMessage}`);
       }
     };
 
@@ -116,8 +118,9 @@ export default function Plans() {
           setPlans(refreshedData.data);
         }
       }
-    } catch (error: any) {
-      setMessage(`Error: ${error.message}`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setMessage(`Error: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }

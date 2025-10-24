@@ -2,7 +2,17 @@
 
 import { useState } from 'react';
 
-export default function LicenseValidate({ plan, onClose }: any) {
+// Define Props interface for type safety
+interface Props {
+  plan: {
+    id: number;
+    planName: string;
+    // Add other plan fields if needed
+  };
+  onClose: () => void;
+}
+
+export default function LicenseValidate({ plan, onClose }: Props) {
   const [licenseCode, setLicenseCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');

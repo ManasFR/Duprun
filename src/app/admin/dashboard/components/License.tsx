@@ -2,6 +2,14 @@
 
 import { useState, useEffect } from 'react';
 
+// Define the License interface
+interface License {
+  id: string;
+  name: string;
+  licenseCodes: string[];
+  status: string;
+}
+
 export default function License() {
   const [formData, setFormData] = useState({
     name: '',
@@ -9,8 +17,8 @@ export default function License() {
     status: 'active',
   });
   const [message, setMessage] = useState('');
-  const [licenses, setLicenses] = useState([]);
-  const [showMore, setShowMore] = useState({});
+  const [licenses, setLicenses] = useState<License[]>([]);
+  const [showMore, setShowMore] = useState<{ [key: string]: boolean }>({});
 
   // Fetch licenses on component mount
   useEffect(() => {
@@ -24,13 +32,14 @@ export default function License() {
           setMessage(result.error || 'Error fetching licenses');
         }
       } catch (error) {
+        console.error('Error fetching licenses:', error);
         setMessage('Error fetching licenses');
       }
     };
     fetchLicenses();
   }, []);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
       const response = await fetch('/api/admin/license', {
@@ -58,16 +67,17 @@ export default function License() {
         setMessage(result.error || 'Something went wrong');
       }
     } catch (error) {
+      console.error('Error generating licenses:', error);
       setMessage('Error generating licenses');
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const toggleShowMore = (id) => {
+  const toggleShowMore = (id: string) => {
     setShowMore((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
@@ -144,7 +154,7 @@ export default function License() {
                   <td className="py-3">{license.name}</td>
                   <td>
                     <div>
-                      {license.licenseCodes.slice(0, 5).map((code, index) => (
+                      {license.licenseCodes.slice(0, 5).map((code: string, index: number) => (
                         <p key={index} className="text-gray-300">{code}</p>
                       ))}
                       {license.licenseCodes.length > 5 && !showMore[license.id] && (
@@ -157,7 +167,7 @@ export default function License() {
                       )}
                       {showMore[license.id] && (
                         <div className="max-h-40 overflow-y-auto mt-2">
-                          {license.licenseCodes.slice(5).map((code, index) => (
+                          {license.licenseCodes.slice(5).map((code: string, index: number) => (
                             <p key={index} className="text-gray-300">{code}</p>
                           ))}
                           <button

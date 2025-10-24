@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import mysql from "mysql2/promise";
+import mysql, { RowDataPacket } from "mysql2/promise";
+
+// Define Admin interface based on admins table schema
+interface Admin extends RowDataPacket {
+  id: number;
+  email: string;
+  password: string;
+  // Add other fields if your table has them, like created_at, etc.
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -7,7 +15,8 @@ export async function POST(req: NextRequest) {
 
     const connection = await mysql.createConnection(process.env.DATABASE_URL!);
 
-    const [rows]: any = await connection.execute(
+    // Use RowDataPacket for rows, typed as Admin
+    const [rows]: [Admin[], unknown] = await connection.execute(
       "SELECT * FROM admins WHERE email = ? AND password = ?",
       [email, password]
     );
@@ -18,9 +27,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
     }
 
-    // login success → redirect
+    // Login success, return redirect
     return NextResponse.json({ message: "Admin login successful!", redirect: "/admin/dashboard" });
-  } catch (err) {
+  } catch (err: unknown) {
     console.error(err);
     return NextResponse.json({ message: "Server error" }, { status: 500 });
   }

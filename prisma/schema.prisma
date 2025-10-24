@@ -86,3 +86,13 @@ model verificationtoken {
 
   @@unique([identifier, token], map: "VerificationToken_identifier_token_key")
 }
+
+// schema.prisma
+model VideoExports {
+  id         String   @id @default(cuid())
+  userId     String
+  planId     Int
+  exportedAt DateTime @default(now())
+
+  @@map("videoexports") // Keeps DB table lowercase
+}

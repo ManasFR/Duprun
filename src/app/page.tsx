@@ -6,7 +6,6 @@ import { ArrowRight, Video, Image, Music, Download } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import LicenseValidate from "./license_validate";
 
-
 interface Plan {
   id: number;
   planName: string;
@@ -38,7 +37,6 @@ export default function Home() {
         }
       } catch (err) {
         console.error('Error fetching plans:', err);
-        setError(`Failed to load plans: ${err.message}`);
       }
     };
     fetchPlans();
@@ -48,7 +46,7 @@ export default function Home() {
     signIn("google", { callbackUrl: "/dashboard/duprun" });
   };
 
-    const handleSelectPlan = (plan: Plan) => {
+  const handleSelectPlan = (plan: Plan) => {
     if (!session) {
       handleSignIn(); // redirect to Google login
       return;
@@ -100,22 +98,22 @@ export default function Home() {
           <h2 className="text-4xl font-extrabold text-white text-center mb-16">Why Choose DUPRUN?</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
             <div className="text-center p-8 bg-gray-900 rounded-xl shadow-lg">
-              <Video className="w-14 h-14 text-white mx-auto mb-5" />
+              <Video className="w-14 h-14 text-white mx-auto mb-5" aria-hidden="true" />
               <h3 className="text-2xl font-semibold text-white mb-3">Smooth Zoom Effects</h3>
               <p className="text-gray-300 text-lg">Add custom zoom points to create dynamic, professional video transitions with ease.</p>
             </div>
             <div className="text-center p-8 bg-gray-900 rounded-xl shadow-lg">
-              <Image className="w-14 h-14 text-white mx-auto mb-5" />
+              <Image className="w-14 h-14 text-white mx-auto mb-5" aria-hidden="true" />
               <h3 className="text-2xl font-semibold text-white mb-3">Multiple Image Support</h3>
               <p className="text-gray-300 text-lg">Combine multiple images into a single video with seamless slide transitions.</p>
             </div>
             <div className="text-center p-8 bg-gray-900 rounded-xl shadow-lg">
-              <Music className="w-14 h-14 text-white mx-auto mb-5" />
+              <Music className="w-14 h-14 text-white mx-auto mb-5" aria-hidden="true" />
               <h3 className="text-2xl font-semibold text-white mb-3">Add Background Music</h3>
               <p className="text-gray-300 text-lg">Enhance your videos with custom audio tracks for a more engaging experience.</p>
             </div>
             <div className="text-center p-8 bg-gray-900 rounded-xl shadow-lg">
-              <Download className="w-14 h-14 text-white mx-auto mb-5" />
+              <Download className="w-14 h-14 text-white mx-auto mb-5" aria-hidden="true" />
               <h3 className="text-2xl font-semibold text-white mb-3">Easy Export</h3>
               <p className="text-gray-300 text-lg">Download your videos in high-quality WebM format with a single click.</p>
             </div>
@@ -123,54 +121,42 @@ export default function Home() {
         </div>
       </section>
 
-{/* Pricing Plans Section */}
-<section id="pricing" className="py-20 bg-black">
-  <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
-    <h2 className="text-4xl font-extrabold text-white text-center mb-16">Pricing Plans</h2>
-    {error ? (
-      <p className="text-red-400 text-center text-lg">{error}</p>
-    ) : plans.length === 0 ? (
-      <p className="text-gray-300 text-center text-lg">No plans available at the moment.</p>
-    ) : (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
-        {plans.map((plan) => (
-          <div key={plan.id} className="text-center p-8 bg-gray-900 rounded-xl shadow-lg">
-            <h3 className="text-2xl font-semibold text-white mb-3">{plan.planName}</h3>
-            <p className="text-gray-300 text-lg mb-4">
-              <span className="text-3xl font-bold text-white">${plan.salePrice.toFixed(2)}</span>
-              {plan.retailPrice !== plan.salePrice && (
-                <span className="text-gray-500 line-through ml-2">${plan.retailPrice.toFixed(2)}</span>
-              )}
-            </p>
-
-            <div className="text-gray-300 text-lg mb-4">
-              {plan.features && Array.isArray(plan.features) && (
-                <ul className="list-disc list-inside">
-                  {plan.features.map((feature: string, index: number) => (
-                    <li key={index} className="text-white text-lg">{feature}</li>
-                  ))}
-                </ul>
-              )}
+      {/* Pricing Plans Section */}
+      <section id="pricing" className="py-20 bg-black">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+          <h2 className="text-4xl font-extrabold text-white text-center mb-16">Pricing Plans</h2>
+          {error ? (
+            <p className="text-red-400 text-center text-lg">{error}</p>
+          ) : plans.length === 0 ? (
+            <p className="text-gray-300 text-center text-lg">No plans available at the moment.</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+              {plans.map((plan) => (
+                <div key={plan.id} className="text-center p-8 bg-gray-900 rounded-xl shadow-lg">
+                  <h3 className="text-2xl font-semibold text-white mb-3">{plan.planName}</h3>
+                  <p className="text-gray-300 text-lg mb-4">
+                    <span className="text-3xl font-bold text-white">${plan.salePrice.toFixed(2)}</span>
+                    {plan.retailPrice !== plan.salePrice && (
+                      <span className="text-gray-500 line-through ml-2">${plan.retailPrice.toFixed(2)}</span>
+                    )}
+                  </p>
+                  <button
+                    onClick={() => handleSelectPlan(plan)}
+                    className="bg-white text-black px-6 py-3 rounded-lg text-lg font-semibold hover:bg-gray-200 transition"
+                  >
+                    Select Plan
+                  </button>
+                </div>
+              ))}
             </div>
+          )}
+        </div>
 
-            <button
-              onClick={() => handleSelectPlan(plan)}
-              className="bg-white text-black px-6 py-3 rounded-lg text-lg font-semibold hover:bg-gray-200 transition"
-            >
-              Select Plan
-            </button>
-          </div>
-        ))}
-      </div>
-    )}
-  </div>
-
-  {/* Render modal once at component level */}
-  {showModal && selectedPlan && (
-    <LicenseValidate plan={selectedPlan} onClose={() => setShowModal(false)} />
-  )}
-</section>
-
+        {/* Render modal once at component level */}
+        {showModal && selectedPlan && (
+          <LicenseValidate plan={selectedPlan} onClose={() => setShowModal(false)} />
+        )}
+      </section>
 
       {/* Testimonials Section */}
       <section className="py-20 bg-black">
@@ -178,15 +164,21 @@ export default function Home() {
           <h2 className="text-4xl font-extrabold text-white text-center mb-16">What Our Users Say</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
             <div className="p-8 bg-gray-900 rounded-xl shadow-lg">
-              <p className="text-gray-300 text-lg mb-4">"DUPRUN made my tutorial videos look so professional with minimal effort. The zoom effects are a game-changer!"</p>
+              <p className="text-gray-300 text-lg mb-4">
+                &quot;DUPRUN made my tutorial videos look so professional with minimal effort. The zoom effects are a game-changer!&quot;
+              </p>
               <p className="text-white font-semibold">Amit Sharma, Content Creator</p>
             </div>
             <div className="p-8 bg-gray-900 rounded-xl shadow-lg">
-              <p className="text-gray-300 text-lg mb-4">"The ability to add music and export in WebM format is so smooth. DUPRUN is my go-to for quick video edits."</p>
+              <p className="text-gray-300 text-lg mb-4">
+                &quot;The ability to add music and export in WebM format is so smooth. DUPRUN is my go-to for quick video edits.&quot;
+              </p>
               <p className="text-white font-semibold">Priya Patel, Educator</p>
             </div>
             <div className="p-8 bg-gray-900 rounded-xl shadow-lg">
-              <p className="text-gray-300 text-lg mb-4">"Combining multiple images into one video was so easy. DUPRUN saved me hours of editing time!"</p>
+              <p className="text-gray-300 text-lg mb-4">
+                &quot;Combining multiple images into one video was so easy. DUPRUN saved me hours of editing time!&quot;
+              </p>
               <p className="text-white font-semibold">Rahul Verma, Freelancer</p>
             </div>
           </div>

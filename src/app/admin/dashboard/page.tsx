@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Menu } from 'lucide-react';
+import { Poppins } from 'next/font/google';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import Users from './components/Users';
@@ -10,6 +11,13 @@ import Stats from './components/Stats';
 import License from './components/License';
 import Settings from './components/Settings';
 import Plans from './components/Plans';
+
+// Font configuration
+const poppins = Poppins({
+  weight: ['400', '500', '600', '700'],
+  subsets: ['latin'],
+  display: 'swap',
+});
 
 export default function AdminDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -39,10 +47,13 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white font-[Poppins] flex">
-      <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
-
-      <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} activeTab={activeTab} setActiveTab={setActiveTab} />
+    <div className={`min-h-screen bg-black text-white flex ${poppins.className}`}>
+      <Sidebar 
+        isSidebarOpen={isSidebarOpen} 
+        toggleSidebar={toggleSidebar} 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+      />
 
       <div className="flex-1 p-10">
         <header className="flex items-center justify-between mb-10">
