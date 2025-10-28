@@ -1,8 +1,7 @@
-import NextAuth, { NextAuthOptions } from 'next-auth';
-import GoogleProvider from 'next-auth/providers/google';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import NextAuth, { NextAuthOptions } from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
+import { prisma } from "@/lib/prisma"; // ✅ Use shared Prisma instance
+import crypto from "crypto";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -13,43 +12,43 @@ export const authOptions: NextAuthOptions = {
   ],
   secret: process.env.NEXTAUTH_SECRET,
   pages: {
-    signIn: '/',
-    error: '/',
+    signIn: "/",
+    error: "/",
   },
   callbacks: {
-    // Sign-in callback: create user if not exists
+    // ✅ Create user if not exists
     async signIn({ user }) {
-  if (!user.email) return false;
+      if (!user.email) return false;
 
-  const existingUser = await prisma.user.findUnique({
-    where: { email: user.email },
-  });
+      const existingUser = await prisma.user.findUnique({
+        where: { email: user.email },
+      });
 
-  if (!existingUser) {
-    await prisma.user.create({
-      data: {
-        id: crypto.randomUUID(), // ← Add this
-        name: user.name ?? null,
-        email: user.email,
-        image: user.image ?? null,
-        plan_id: 0,
-        updatedAt: new Date(), // ← Add this
-      },
-    });
-  }
+      if (!existingUser) {
+        await prisma.user.create({
+          data: {
+            id: crypto.randomUUID(),
+            name: user.name ?? null,
+            email: user.email,
+            image: user.image ?? null,
+            plan_id: 0,
+            updatedAt: new Date(),
+          },
+        });
+      }
 
-  return true;
-},
+      return true;
+    },
 
-    // Redirect callback
+    // ✅ Handle redirect
     async redirect({ url, baseUrl }) {
-      if (url.startsWith('/dashboard/duprun')) return `${baseUrl}${url}`;
-      if (url.startsWith('/')) return `${baseUrl}${url}`;
+      if (url.startsWith("/dashboard/duprun")) return `${baseUrl}${url}`;
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
       if (new URL(url).origin === baseUrl) return url;
       return `${baseUrl}/dashboard/duprun`;
     },
 
-    // JWT callback
+    // ✅ Attach planId and userId in JWT
     async jwt({ token, user }) {
       if (user?.email) {
         const dbUser = await prisma.user.findUnique({
@@ -65,12 +64,11 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
 
-    // Session callback
+    // ✅ Attach planId and id to session
     async session({ session, token }) {
       if (session.user) {
-        // Assign proper types
         session.user.planId = token.planId as number;
-        session.user.id = token.userId as string; // Use 'id', not 'userId'
+        session.user.id = token.userId as string;
       }
       return session;
     },
