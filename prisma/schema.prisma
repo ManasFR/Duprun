@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -42,18 +42,19 @@ model license {
 }
 
 model plan {
-  id          Int     @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   planName    String
   retailPrice Float
   salePrice   Float
   license_id  Int
-  videos      Int     @default(0)
-  watermark   Int     @default(0)
-  noWatermark Int     @default(0)
+  videos      Int      @default(0)
+  watermark   Int      @default(0)
+  noWatermark Int      @default(0)
   features    Json?
-  license     license @relation(fields: [license_id], references: [id], map: "Plan_license_id_fkey")
 
-  @@index([license_id], map: "Plan_license_id_fkey")
+  license     license  @relation(fields: [license_id], references: [id])
+
+  @@index([license_id])
 }
 
 model session {
