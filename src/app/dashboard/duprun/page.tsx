@@ -861,7 +861,6 @@ const ZoomVideoApp = () => {
       <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
       <div className="max-w-full mx-auto">
         <div className="text-center mb-10">
-          <a href="https://panel32b.info/" >Home</a>
           <h1 className="text-5xl font-extrabold tracking-tight mb-2">
             DUPRUN
           </h1>
