@@ -77,7 +77,6 @@ const ZoomVideoApp = () => {
     { value: 'custom', label: 'Custom Image' },
   ];
 
-  // Fetch plan limits on component mount
   useEffect(() => {
     fetchPlanLimits();
   }, []);
@@ -297,7 +296,6 @@ const ZoomVideoApp = () => {
   };
 
   const drawWatermark = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
-    // Only show watermark if planLimits is not null and noWatermark is false
     if (!planLimits || planLimits.noWatermark) return;
 
     ctx.save();
@@ -436,7 +434,6 @@ const ZoomVideoApp = () => {
     
     ctx.restore();
     
-    // Draw watermark if needed (only during recording/playing)
     if (isPlaying || isRecordingRef.current) {
       drawWatermark(ctx, canvas.width, canvas.height);
     }
@@ -666,7 +663,6 @@ const ZoomVideoApp = () => {
     const canvasStream = canvas.captureStream(30);
     const audioStreams: MediaStream[] = [];
 
-    // Initialize AudioContext for audio processing
     audioContextRef.current = new AudioContext();
     const audioContext = audioContextRef.current;
 
@@ -674,11 +670,10 @@ const ZoomVideoApp = () => {
       if (slide.audio && audioRefs.current[slide.id]) {
         const audio = audioRefs.current[slide.id];
         audio.currentTime = 0;
-        // Create a MediaElementAudioSourceNode for the audio
         const source = audioContext.createMediaElementSource(audio);
         const destination = audioContext.createMediaStreamDestination();
         source.connect(destination);
-        source.connect(audioContext.destination); // Also connect to speakers for playback
+        source.connect(audioContext.destination);
         audioStreams.push(destination.stream);
       }
     });
@@ -711,7 +706,6 @@ const ZoomVideoApp = () => {
         audio.pause();
         audio.currentTime = 0;
       });
-      // Close AudioContext
       if (audioContextRef.current) {
         audioContextRef.current.close();
         audioContextRef.current = null;
@@ -719,14 +713,12 @@ const ZoomVideoApp = () => {
       isRecordingRef.current = false;
       setIsRecording(false);
 
-      // Record export in database
       try {
         const res = await fetch('/api/user/record-export', {
           method: 'POST',
         });
         const data = await res.json();
         if (data.success) {
-          // Refresh plan limits
           await fetchPlanLimits();
         }
       } catch (err) {
@@ -749,13 +741,12 @@ const ZoomVideoApp = () => {
     const hasAnyZoomPoints = slides.some(slide => slide.zoomPoints.length > 0);
     if (!hasAnyZoomPoints || isRecordingRef.current) return;
     
-    // Check plan limits before recording
     if (!planLimits || !planLimits.hasAccess) {
       setShowLimitError(true);
       setTimeout(() => setShowLimitError(false), 5000);
       return;
     }
-    
+
     startRecording();
     startAnimation();
   };
@@ -868,14 +859,21 @@ const ZoomVideoApp = () => {
   return (
     <div className="min-h-screen bg-black p-4 font-[Poppins] text-white">
       <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+      {/* Cute Header */}
+  <header className="border-b border-gray-800 pb-6 mb-10">
+    <div className="max-w-full mx-auto flex justify-between items-center">
+      <div className="text-3xl font-extrabold tracking-tight">
+        <a href="/">
+        🌙 DUPRUN
+        </a>
+      </div>
+    </div>
+  </header>
       <div className="max-w-full mx-auto">
         <div className="text-center mb-10">
-          <h1 className="text-5xl font-extrabold tracking-tight mb-2">
-            DUPRUN
-          </h1>
-          <p className="text-lg text-gray-300">
-            Create smooth zoom videos with multiple images
-          </p>
+          <h2 className="text-5xl font-bold tracking-tight mb-2">
+  Turn your plain screenshots into eye-catching videos.
+</h2>
           {planLimits && (
             <div className="mt-4 inline-block bg-gray-900 px-6 py-3 rounded-2xl border border-gray-800">
               <p className="text-sm text-gray-300">
@@ -1249,7 +1247,14 @@ const ZoomVideoApp = () => {
                   </button>
                 </div>
 
-                
+                <button
+                  onClick={createAndDownloadVideo}
+                  disabled={totalZoomPoints === 0 || isPlaying || isRecording || !planLimits?.hasAccess}
+                  className={`w-full ${totalZoomPoints === 0 || isPlaying || isRecording || !planLimits?.hasAccess ? 'bg-gray-800 cursor-not-allowed' : 'bg-white text-black hover:bg-gray-200'} py-2 px-4 rounded-2xl font-semibold flex items-center justify-center gap-2 transition shadow-md`}
+                >
+                  <Download className="w-4 h-4" />
+                  {isRecording ? 'Recording...' : 'Create & Download Full Video'}
+                </button>
                 
                 {planLimits && !planLimits.noWatermark && (
                   <p className="text-xs text-gray-500 text-center">
@@ -1280,8 +1285,8 @@ const ZoomVideoApp = () => {
             </div>
           </div>
 
-          <div className="col-span-3">
-            <div className="bg-gray-900 rounded-2xl p-4 border border-gray-800 shadow-2xl">
+          <div className="col-span-3 sticky top-0 h-[calc(100vh-2rem)] overflow-hidden">
+            <div className="bg-gray-900 rounded-2xl p-4 border border-gray-800 shadow-2xl h-full">
               {slides.length > 1 && (
                 <div className="flex items-center justify-between mb-4">
                   <button
@@ -1308,15 +1313,15 @@ const ZoomVideoApp = () => {
                 </div>
               )}
 
-              <div className="flex justify-center">
-                <div className="relative w-full">
+              <div className="flex justify-center h-[calc(100%-4rem)]">
+                <div className="relative w-full h-full">
                   <canvas
                     ref={canvasRef}
                     onClick={addZoomPoint}
                     onMouseMove={handleMouseMove}
                     onMouseUp={handleMouseUp}
                     onMouseLeave={handleMouseUp}
-                    className="border border-gray-700 rounded-2xl cursor-crosshair w-full h-auto bg-black shadow-xl"
+                    className="border border-gray-700 rounded-2xl cursor-crosshair w-full h-auto max-h-full bg-black shadow-xl"
                     width={1440}
                     height={810}
                   />

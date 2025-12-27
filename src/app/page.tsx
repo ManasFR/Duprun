@@ -154,8 +154,8 @@ export default function Home() {
 
         {/* Render modal once at component level */}
         {showModal && selectedPlan && (
-          <LicenseValidate plan={selectedPlan} onClose={() => setShowModal(false)} />
-        )}
+    <LicenseValidate plan={selectedPlan} />
+  )}
       </section>
 
       {/* Testimonials Section */}

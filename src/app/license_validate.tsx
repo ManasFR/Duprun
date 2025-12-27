@@ -2,14 +2,13 @@
 
 import { useState } from 'react';
 
-// Define Props interface for type safety
 interface Props {
   plan: {
     id: number;
     planName: string;
     // Add other plan fields if needed
   };
-  onClose: () => void;
+  onClose?: () => void;  // optional bana diya
 }
 
 export default function LicenseValidate({ plan, onClose }: Props) {
@@ -36,6 +35,8 @@ export default function LicenseValidate({ plan, onClose }: Props) {
 
       if (data.success) {
         setMessage('✅ License validated successfully!');
+        // Success pe direct dashboard pe bhej de
+        window.location.href = '/dashboard/duprun';
       } else {
         setMessage(`❌ ${data.message || 'Invalid license code'}`);
       }
@@ -51,7 +52,7 @@ export default function LicenseValidate({ plan, onClose }: Props) {
     <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
       <div className="bg-gray-900 p-8 rounded-xl shadow-lg max-w-md w-full text-center relative">
         <button
-          onClick={onClose}
+          onClick={onClose}  // agar pass kiya to close karega, warna kuch nahi
           className="absolute top-3 right-3 text-gray-400 hover:text-white text-xl"
         >
           ×
