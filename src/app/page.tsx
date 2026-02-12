@@ -103,7 +103,7 @@ export default function Home() {
       <section className="relative pt-32 pb-20 px-6">
         <div className="max-w-7xl mx-auto text-center">
           <div className="inline-block mb-6 px-4 py-2 bg-purple-500/10 border border-purple-500/20 rounded-full">
-            <span className="text-purple-300 text-sm font-semibold">✨ Trusted by 8,600+ Creators</span>
+            <span className="text-purple-300 text-sm font-semibold">✨ Trusted by 1000+ Creators</span>
           </div>
           <h1 className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight">
             Create <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">Stunning</span>
