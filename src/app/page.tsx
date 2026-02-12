@@ -156,6 +156,7 @@ export default function Home() {
       </section>
 
       {/* Pricing Plans Section */}
+{/* Pricing Plans Section */}
       <section id="pricing" className="py-20 px-6 relative">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -173,11 +174,11 @@ export default function Home() {
               <p className="text-gray-400 mt-4">Loading plans...</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {plans.map((plan, idx) => {
+            <div className="flex justify-center">
+              {plans.filter(plan => plan.id === 10).map((plan, idx) => {
                 const isPopular = idx === 1;
                 return (
-                  <div key={plan.id} className={`relative bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-sm border rounded-3xl p-8 transition-all duration-300 hover:transform hover:scale-105 ${isPopular ? 'border-purple-500 shadow-2xl shadow-purple-500/20' : 'border-white/10 hover:border-purple-500/50'}`}>
+                  <div key={plan.id} className={`relative bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-sm border rounded-3xl p-8 transition-all duration-300 hover:transform hover:scale-105 max-w-md w-full ${isPopular ? 'border-purple-500 shadow-2xl shadow-purple-500/20' : 'border-white/10 hover:border-purple-500/50'}`}>
                     {isPopular && (
                       <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                         <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
@@ -241,11 +242,7 @@ export default function Home() {
 
                     <button
                       onClick={() => handleSelectPlan(plan)}
-                      className={`w-full py-3.5 rounded-xl font-semibold transition-all duration-300 ${
-                        isPopular
-                          ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-lg hover:shadow-purple-500/50'
-                          : 'bg-white/5 border border-white/10 text-white hover:bg-white/10'
-                      }`}
+                      className="w-full py-3.5 rounded-xl font-semibold transition-all duration-300 bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-lg hover:shadow-purple-500/50"
                     >
                       Select Plan
                     </button>
@@ -316,26 +313,32 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-black border-t border-gray-800 py-10">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-10">
-            <div>
-              <h3 className="text-xl font-semibold mb-5">DUPRUN</h3>
-              <p className="text-gray-300 text-lg">Create professional zoom videos effortlessly with DUPRUN.</p>
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold mb-5">Quick Links</h3>
-              <ul className="space-y-3">
-                <li><Link href="/" className="text-gray-300 hover:text-white text-lg transition">Home</Link></li>
-                <li><Link href="#features" className="text-gray-300 hover:text-white text-lg transition">Features</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="mt-10 text-center text-gray-300 text-lg">
-            &copy; {new Date().getFullYear()} DUPRUN. All rights reserved.
-          </div>
-        </div>
-      </footer>
+      <footer className="bg-black border-t border-gray-800 py-6">
+  <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+    <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+      {/* Left - Brand */}
+      <div className="text-center sm:text-left">
+        <h3 className="text-lg font-semibold">DUPRUN</h3>
+        <p className="text-gray-400 text-sm">Create professional zoom videos effortlessly</p>
+      </div>
+
+      {/* Center - Links */}
+      <div className="flex gap-6">
+        <Link href="/" className="text-gray-400 hover:text-white text-sm transition">
+          Home
+        </Link>
+        <Link href="#features" className="text-gray-400 hover:text-white text-sm transition">
+          Features
+        </Link>
+      </div>
+
+      {/* Right - Copyright */}
+      <div className="text-gray-500 text-sm text-center sm:text-right">
+        &copy; {new Date().getFullYear()} DUPRUN. All rights reserved.
+      </div>
+    </div>
+  </div>
+</footer>
     </div>
   );
 }
