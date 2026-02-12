@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { signIn, useSession } from "next-auth/react";
+import { useRouter } from 'next/navigation';
+import { useSession } from "next-auth/react";
 import { ArrowRight, Video, Image, Music, Download, Check, X, Sparkles, Zap, Layers, Wand2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import LicenseValidate from "./license_validate";
@@ -20,6 +21,7 @@ interface Plan {
 
 export default function Home() {
   const { data: session } = useSession();
+  const router = useRouter();
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -53,13 +55,13 @@ export default function Home() {
     fetchPlans();
   }, []);
 
-  const handleSignIn = () => {
-    signIn("google", { callbackUrl: "/dashboard/duprun" });
+  const handleGetStarted = () => {
+    router.push('/user/register');
   };
 
   const handleSelectPlan = (plan: Plan) => {
     if (!session) {
-      handleSignIn(); // redirect to Google login
+      router.push('/user/register');
       return;
     }
     setSelectedPlan(plan);
@@ -86,10 +88,8 @@ export default function Home() {
           <nav className="hidden md:flex items-center space-x-8">
             <Link href="/" className="text-gray-300 hover:text-white transition">Home</Link>
             <Link href="#features" className="text-gray-300 hover:text-white transition">Features</Link>
-            <Link href="/about" className="text-gray-300 hover:text-white transition">About</Link>
-            <Link href="/contact" className="text-gray-300 hover:text-white transition">Contact</Link>
             <button
-              onClick={handleSignIn}
+              onClick={handleGetStarted}
               className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2.5 rounded-full font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300 flex items-center gap-2 group"
             >
               Try DUPRUN
@@ -113,7 +113,7 @@ export default function Home() {
             Transform your images into engaging zoom videos with smooth transitions, custom zoom points, and background music in just a few clicks.
           </p>
           <button
-            onClick={handleSignIn}
+            onClick={handleGetStarted}
             className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-10 py-4 rounded-full text-lg font-semibold hover:shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105"
           >
             Get Started Now
@@ -307,7 +307,7 @@ export default function Home() {
             Join thousands of creators using DUPRUN to make professional zoom videos effortlessly. Start now and see the difference!
           </p>
           <button
-            onClick={handleSignIn}
+            onClick={handleGetStarted}
             className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-10 py-4 rounded-full text-lg font-semibold hover:shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105"
           >
             Start Creating Now
@@ -328,17 +328,7 @@ export default function Home() {
               <ul className="space-y-3">
                 <li><Link href="/" className="text-gray-300 hover:text-white text-lg transition">Home</Link></li>
                 <li><Link href="#features" className="text-gray-300 hover:text-white text-lg transition">Features</Link></li>
-                <li><Link href="/about" className="text-gray-300 hover:text-white text-lg transition">About</Link></li>
-                <li><Link href="/contact" className="text-gray-300 hover:text-white text-lg transition">Contact</Link></li>
               </ul>
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold mb-5">Follow Us</h3>
-              <div className="flex space-x-6">
-                <a href="#" className="text-gray-300 hover:text-white text-lg transition">Twitter</a>
-                <a href="#" className="text-gray-300 hover:text-white text-lg transition">LinkedIn</a>
-                <a href="#" className="text-gray-300 hover:text-white text-lg transition">GitHub</a>
-              </div>
             </div>
           </div>
           <div className="mt-10 text-center text-gray-300 text-lg">
