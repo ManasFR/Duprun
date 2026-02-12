@@ -297,18 +297,6 @@ const ZoomVideoApp = () => {
     }
   };
 
-  const drawWatermark = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
-    if (!planLimits || planLimits.noWatermark) return;
-
-    ctx.save();
-    ctx.globalAlpha = 0.3;
-    ctx.font = 'bold 40px Poppins';
-    ctx.fillStyle = '#ffffff';
-    ctx.textAlign = 'right';
-    ctx.fillText('DUPRUN', width - 20, height - 20);
-    ctx.restore();
-  };
-
   const drawCursor = (ctx: CanvasRenderingContext2D, centerX: number, centerY: number) => {
     ctx.beginPath();
     switch (cursorType) {
