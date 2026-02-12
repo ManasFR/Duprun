@@ -423,10 +423,7 @@ const ZoomVideoApp = () => {
     }
     
     ctx.restore();
-    
-    if (isPlaying || isRecordingRef.current) {
-      drawWatermark(ctx, canvas.width, canvas.height);
-    }
+  
     
     if (isPlaying && pointIndex < slide.zoomPoints.length) {
       const text = slide.zoomPoints[pointIndex].text;
