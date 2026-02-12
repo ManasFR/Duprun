@@ -865,14 +865,8 @@ const ZoomVideoApp = () => {
           {planLimits && (
             <div className="mt-4 inline-block bg-gray-900 px-6 py-3 rounded-2xl border border-gray-800">
               <p className="text-sm text-gray-300">
-                {planLimits.planName && <span className="font-semibold text-white">{planLimits.planName} Plan</span>}
-                {planLimits.hasAccess ? (
-                  <span className="ml-2">
-                    📹 <span className="font-bold text-white">{planLimits.videosRemaining}</span> / {planLimits.videosLimit} videos remaining this month
-                  </span>
-                ) : (
-                  <span className="ml-2 text-red-400 font-semibold">⚠️ No active plan or limit reached</span>
-                )}
+                {planLimits.planName && <span className="font-semibold text-white">{planLimits.planName}</span>}
+                
               </p>
             </div>
           )}
@@ -1244,11 +1238,7 @@ const ZoomVideoApp = () => {
                   {isRecording ? 'Recording...' : 'Create & Download Full Video'}
                 </button>
                 
-                {planLimits && !planLimits.noWatermark && (
-                  <p className="text-xs text-gray-500 text-center">
-                    ⚠️ Exported videos will include DUPRUN watermark
-                  </p>
-                )}
+                
               </div>
 
               {(isPlaying || progress > 0) && (

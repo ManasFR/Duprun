@@ -207,26 +207,6 @@ export default function Home() {
                     </div>
 
                     <div className="space-y-3 mb-8">
-                      <div className="flex items-center gap-3 text-gray-300">
-                        <div className="w-5 h-5 bg-purple-500/20 rounded-full flex items-center justify-center flex-shrink-0">
-                          <Video className="w-3 h-3 text-purple-400" />
-                        </div>
-                        <span>{plan.videos} videos per month</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-3 text-gray-300">
-                        {plan.noWatermark ? (
-                          <div className="w-5 h-5 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0">
-                            <Check className="w-3 h-3 text-green-400" />
-                          </div>
-                        ) : (
-                          <div className="w-5 h-5 bg-red-500/20 rounded-full flex items-center justify-center flex-shrink-0">
-                            <X className="w-3 h-3 text-red-400" />
-                          </div>
-                        )}
-                        <span>{plan.noWatermark ? 'No Watermark' : 'With Watermark'}</span>
-                      </div>
-
                       {plan.features && plan.features.length > 0 && (
                         <>
                           <div className="border-t border-white/10 my-4"></div>
@@ -320,16 +300,6 @@ export default function Home() {
       <div className="text-center sm:text-left">
         <h3 className="text-lg font-semibold">DUPRUN</h3>
         <p className="text-gray-400 text-sm">Create professional zoom videos effortlessly</p>
-      </div>
-
-      {/* Center - Links */}
-      <div className="flex gap-6">
-        <Link href="/" className="text-gray-400 hover:text-white text-sm transition">
-          Home
-        </Link>
-        <Link href="#features" className="text-gray-400 hover:text-white text-sm transition">
-          Features
-        </Link>
       </div>
 
       {/* Right - Copyright */}
