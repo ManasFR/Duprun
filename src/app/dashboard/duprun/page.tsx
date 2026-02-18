@@ -778,16 +778,19 @@ const ZoomVideoApp = () => {
     }
   };
 
-  useEffect(() => {
-    const savedSlides = localStorage.getItem('duprunSlides');
-    if (savedSlides) {
-      setSlides(JSON.parse(savedSlides));
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('duprunSlides', JSON.stringify(slides));
-  }, [slides]);
+useEffect(() => {
+  const slidesWithoutImages = slides.map(slide => ({
+    id: slide.id,
+    title: slide.title,
+    zoomPoints: slide.zoomPoints,
+    // image aur audio store nahi karenge
+  }));
+  try {
+    localStorage.setItem('duprunSlidesMetadata', JSON.stringify(slidesWithoutImages));
+  } catch (e) {
+    console.warn('LocalStorage save failed:', e);
+  }
+}, [slides]);
 
   useEffect(() => {
     if (isPlaying) {
