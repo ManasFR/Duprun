@@ -78,6 +78,7 @@ model user {
   plan_id       Int       @default(0)
   account       account[]
   session       session[]
+  custom_domain custom_domain?   // ← add this line
 }
 
 model verificationtoken {
@@ -96,4 +97,22 @@ model VideoExports {
   exportedAt DateTime @default(now())
 
   @@map("videoexports") // Keeps DB table lowercase
+}
+
+
+model custom_domain {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  domain               String   @unique
+  status               String   @default("pending")
+  vercelDomainId       String?
+  googleClientId       String?
+  googleClientSecret   String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  user user @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([domain])
+  @@index([userId])
 }

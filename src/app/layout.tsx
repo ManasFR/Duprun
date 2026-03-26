@@ -1,26 +1,28 @@
-'use client';
+import { getTenant } from "@/lib/tenant"
+import ClientLayout from "./ClientLayout"
+import "./globals.css"
+import "@fontsource/poppins/400.css"
+import "@fontsource/poppins/500.css"
+import "@fontsource/poppins/600.css"
+import "@fontsource/poppins/700.css"
 
-import { SessionProvider } from "next-auth/react";
-import "./globals.css";
-
-// ✅ Local Poppins font (no Google fetch during build)
-import "@fontsource/poppins/400.css";
-import "@fontsource/poppins/500.css";
-import "@fontsource/poppins/600.css";
-import "@fontsource/poppins/700.css";
-
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
+  const tenant = await getTenant()
+
   return (
     <html lang="en">
+      <head>
+        <title>{tenant?.user?.name ? tenant.user.name : "Duprun"}</title>
+      </head>
       <body style={{ fontFamily: "'Poppins', sans-serif" }}>
-        <SessionProvider>
+        <ClientLayout>
           {children}
-        </SessionProvider>
+        </ClientLayout>
       </body>
     </html>
-  );
+  )
 }

@@ -64,6 +64,7 @@ const ZoomVideoApp = () => {
   const isRecordingRef = useRef<boolean>(false);
   const backgroundImageRef = useRef<HTMLImageElement | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const is4KRef = useRef<boolean>(false);
 
   const fontFamilies = [
     'Arial', 'Roboto', 'Open Sans', 'Lato', 'Montserrat',
@@ -680,6 +681,11 @@ const ZoomVideoApp = () => {
     };
 
     mediaRecorderRef.current.onstop = async () => {
+      if (is4KRef.current) {
+          const canvas = canvasRef.current;
+          if (canvas) { canvas.width = 1440; canvas.height = 810; }
+          is4KRef.current = false;
+        }
       const blob = new Blob(recordedChunks.current, { type: 'video/webm' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -748,6 +754,28 @@ const ZoomVideoApp = () => {
     ));
   };
 
+
+  const createAndDownloadVideo4K = async () => {
+  const hasAnyZoomPoints = slides.some(slide => slide.zoomPoints.length > 0);
+  if (!hasAnyZoomPoints || isRecordingRef.current) return;
+
+  if (!planLimits || !planLimits.hasAccess) {
+    setShowLimitError(true);
+    setTimeout(() => setShowLimitError(false), 5000);
+    return;
+  }
+
+  // Upscale canvas to 4K before recording
+  const canvas = canvasRef.current;
+  if (!canvas) return;
+  canvas.width = 3840;
+  canvas.height = 2160;
+  is4KRef.current = true;
+
+  startRecording();
+  startAnimation();
+};
+
   const clearAllPoints = () => {
     if (!currentSlide) return;
     
@@ -812,8 +840,10 @@ const ZoomVideoApp = () => {
             if (canvas) {
               const ctx = canvas.getContext('2d');
               if (ctx) {
-                canvas.width = 1440;
-                canvas.height = 810;
+                if (!is4KRef.current) {
+                  canvas.width = 1440;
+                  canvas.height = 810;
+                }
                 drawFrame(ctx, currentSlideIndex, currentPointIndex, progress, slideTransition);
               }
             }
@@ -834,8 +864,10 @@ const ZoomVideoApp = () => {
     if (currentSlide && imageRefs.current[currentSlide?.id] && canvasRef.current) {
       const ctx = canvasRef.current.getContext('2d');
       if (ctx) {
+        if (!is4KRef.current) {
         canvasRef.current.width = 1440;
         canvasRef.current.height = 810;
+      }
         drawFrame(ctx, currentSlideIndex, currentPointIndex, progress, slideTransition);
       }
     }
@@ -1237,8 +1269,15 @@ const ZoomVideoApp = () => {
                   <Download className="w-4 h-4" />
                   {isRecording ? 'Recording...' : 'Create & Download Full Video'}
                 </button>
-                
-                
+
+                <button
+                  onClick={createAndDownloadVideo4K}
+                  disabled={totalZoomPoints === 0 || isPlaying || isRecording || !planLimits?.hasAccess}
+                  className={`w-full ${totalZoomPoints === 0 || isPlaying || isRecording || !planLimits?.hasAccess ? 'bg-gray-800 cursor-not-allowed' : 'bg-white text-black hover:bg-gray-200'} py-2 px-4 rounded-2xl font-semibold flex items-center justify-center gap-2 transition shadow-md`}
+                >
+                  <Download className="w-4 h-4" />
+                  {isRecording ? 'Recording...' : 'Download 4k Video'}
+                </button>
               </div>
 
               {(isPlaying || progress > 0) && (
