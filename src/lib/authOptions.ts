@@ -133,7 +133,7 @@ export function getAuthOptions(tenant?: {
       },
 
       async redirect({ url, baseUrl }) {
-        if (url.startsWith("/dashboard/duprun")) return `${baseUrl}${url}`
+        // baseUrl ab dynamically current domain hoga
         if (url.startsWith("/")) return `${baseUrl}${url}`
         if (new URL(url).origin === baseUrl) return url
         return `${baseUrl}/dashboard/duprun`
