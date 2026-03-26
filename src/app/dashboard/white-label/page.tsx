@@ -5,7 +5,13 @@ import { saveDomain, getDomain, checkDomainStatus, deleteDomain, saveGoogleKeys,
 
 export default function WhiteLabel() {
   const [domain, setDomain] = useState("")
-  const [savedRecord, setSavedRecord] = useState<any>(null)
+const [savedRecord, setSavedRecord] = useState<{
+  domain: string
+  status: string
+  googleClientId?: string | null
+  googleClientSecret?: string | null
+} | null>(null)
+
   const [error, setError] = useState("")
   const [isPending, startTransition] = useTransition()
   const [checking, setChecking] = useState(false)
