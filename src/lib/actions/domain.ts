@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { getServerSession } from "next-auth"
 import { revalidatePath } from "next/cache"
 import { encrypt } from "@/lib/encryption"
-import { authOptions } from "@/lib/authOptions"  // ← update this import
+import { authOptions } from "@/app/api/auth/[...nextauth]/route"  // ← update this import
 
 // ─── Save / update domain ──────────────────────────────────────
 export async function saveDomain(domain: string) {
