@@ -5,9 +5,11 @@ import { prisma } from "@/lib/prisma"
 import { decrypt } from "@/lib/encryption"
 import crypto from "crypto"
 
-export function getAuthOptions(tenant?: any): NextAuthOptions {
-  // agar tenant ki apni google keys hain to wo use karo
-  // warna default env wali keys use karo
+export function getAuthOptions(tenant?: {
+  googleClientId?: string | null
+  googleClientSecret?: string | null
+}): NextAuthOptions {
+
   const googleClientId =
     tenant?.googleClientId
       ? decrypt(tenant.googleClientId)

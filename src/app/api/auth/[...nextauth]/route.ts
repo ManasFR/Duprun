@@ -4,7 +4,7 @@ import { getTenant } from "@/lib/tenant"
 
 const handler = async (req: Request, ctx: any) => {
   const tenant = await getTenant()
-  const authOptions = getAuthOptions(tenant)
+  const authOptions = getAuthOptions(tenant ?? undefined)  // ← bas ye change
   return NextAuth(authOptions)(req, ctx)
 }
 
