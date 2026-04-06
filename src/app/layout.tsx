@@ -16,7 +16,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <head>
-        <title>{tenant?.user?.name ? tenant.user.name : "Duprun"}</title>
+        <title>{tenant?.appName ?? tenant?.user?.name ?? "Duprun"}</title>
       </head>
       <body style={{ fontFamily: "'Poppins', sans-serif" }}>
         <ClientLayout>

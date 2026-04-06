@@ -171,3 +171,22 @@ export async function removeGoogleKeys() {
     return { error: "Could not remove keys" }
   }
 }
+
+// ─── Save App Name ─────────────────────────────────────────────
+export async function saveAppName(appName: string) {
+  const session = await getServerSession(authOptions)
+  if (!session?.user?.id) return { error: "Not logged in" }
+
+  try {
+    await prisma.custom_domain.update({
+      where: { userId: session.user.id },
+      data:  { appName },
+    })
+
+    revalidatePath("/dashboard/white-label")
+    return { success: true }
+
+  } catch (_err) {
+    return { error: "Could not save app name" }
+  }
+}

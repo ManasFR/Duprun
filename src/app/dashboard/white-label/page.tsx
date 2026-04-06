@@ -1,16 +1,17 @@
 'use client'
 
 import { useState, useEffect, useTransition } from "react"
-import { saveDomain, getDomain, checkDomainStatus, deleteDomain, saveGoogleKeys, removeGoogleKeys } from "@/lib/actions/domain"
+import { saveDomain, getDomain, checkDomainStatus, deleteDomain, saveGoogleKeys, removeGoogleKeys, saveAppName } from "@/lib/actions/domain"
 
 export default function WhiteLabel() {
   const [domain, setDomain] = useState("")
-const [savedRecord, setSavedRecord] = useState<{
-  domain: string
-  status: string
-  googleClientId?: string | null
-  googleClientSecret?: string | null
-} | null>(null)
+  const [savedRecord, setSavedRecord] = useState<{
+    domain: string
+    status: string
+    googleClientId?: string | null
+    googleClientSecret?: string | null
+    appName?: string | null
+  } | null>(null)
 
   const [error, setError] = useState("")
   const [isPending, startTransition] = useTransition()
@@ -23,11 +24,17 @@ const [savedRecord, setSavedRecord] = useState<{
   const [keysError, setKeysError] = useState("")
   const [keysPending, startKeysTransition] = useTransition()
 
+  // App name state
+  const [appName, setAppName] = useState("")
+  const [appNameError, setAppNameError] = useState("")
+  const [appNamePending, startAppNameTransition] = useTransition()
+
   useEffect(() => {
     getDomain().then((record) => {
       if (record) {
         setSavedRecord(record)
         setDomain(record.domain)
+        if (record.appName) setAppName(record.appName)
       }
     })
   }, [])
@@ -69,7 +76,6 @@ const [savedRecord, setSavedRecord] = useState<{
     })
   }
 
-  // Google keys handlers
   function handleSaveKeys() {
     setKeysError("")
     if (!googleClientId || !googleClientSecret) {
@@ -94,6 +100,24 @@ const [savedRecord, setSavedRecord] = useState<{
       const res = await removeGoogleKeys()
       if (res?.error) {
         setKeysError(res.error)
+      } else {
+        const updated = await getDomain()
+        setSavedRecord(updated)
+      }
+    })
+  }
+
+  // App name handler
+  function handleSaveAppName() {
+    setAppNameError("")
+    if (!appName.trim()) {
+      setAppNameError("App name is required")
+      return
+    }
+    startAppNameTransition(async () => {
+      const res = await saveAppName(appName.trim())
+      if (res?.error) {
+        setAppNameError(res.error)
       } else {
         const updated = await getDomain()
         setSavedRecord(updated)
@@ -138,7 +162,6 @@ const [savedRecord, setSavedRecord] = useState<{
       {savedRecord && (
         <div className="border border-gray-200 rounded-xl p-5 mt-6">
 
-          {/* domain + status */}
           <div className="flex items-center justify-between mb-4">
             <span className="font-medium text-sm">{savedRecord.domain}</span>
             <span className={`text-xs px-3 py-1 rounded-full font-medium ${statusColor[savedRecord.status as keyof typeof statusColor]}`}>
@@ -146,7 +169,6 @@ const [savedRecord, setSavedRecord] = useState<{
             </span>
           </div>
 
-          {/* DNS instructions */}
           {savedRecord.status !== "verified" && (
             <div className="bg-gray-50 rounded-lg p-4 mb-4 text-sm">
               <div className="flex gap-2 mb-4">
@@ -256,6 +278,41 @@ const [savedRecord, setSavedRecord] = useState<{
         </div>
       )}
 
+      {/* ── App Name Section ── */}
+      {savedRecord && (
+        <div className="border border-gray-200 rounded-xl p-5 mt-6">
+          <h2 className="text-base font-semibold mb-1">App Name</h2>
+          <p className="text-gray-400 text-xs mb-4">
+            This name will show in the browser tab and throughout your app.
+          </p>
+
+          <div className="flex gap-3">
+            <input
+              type="text"
+              value={appName}
+              onChange={(e) => setAppName(e.target.value)}
+              placeholder="e.g. My Awesome App"
+              className="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              onClick={handleSaveAppName}
+              disabled={appNamePending || !appName}
+              className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium disabled:opacity-50"
+            >
+              {appNamePending ? "Saving..." : "Save"}
+            </button>
+          </div>
+
+          {appNameError && <p className="text-red-500 text-xs mt-2">{appNameError}</p>}
+
+          {savedRecord.appName && (
+            <p className="text-green-600 text-xs mt-2">
+              ✅ Current name: <span className="font-medium">{savedRecord.appName}</span>
+            </p>
+          )}
+        </div>
+      )}
+
       {/* ── Google OAuth Keys Section ── */}
       {savedRecord && (
         <div className="border border-gray-200 rounded-xl p-5 mt-6">
@@ -264,7 +321,6 @@ const [savedRecord, setSavedRecord] = useState<{
             Add your own Google OAuth keys so Google login works on your custom domain.
           </p>
 
-          {/* Instructions */}
           <div className="bg-blue-50 rounded-lg p-4 mb-4 text-xs text-blue-700">
             <p className="font-medium mb-2">How to get your Google OAuth keys:</p>
             <ol className="list-decimal list-inside space-y-1">
@@ -287,7 +343,6 @@ const [savedRecord, setSavedRecord] = useState<{
             </ol>
           </div>
 
-          {/* Keys already saved */}
           {savedRecord.googleClientId ? (
             <div className="bg-green-50 rounded-lg px-4 py-3 mb-4 flex items-center justify-between">
               <div>
