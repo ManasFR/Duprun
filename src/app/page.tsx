@@ -27,6 +27,14 @@ export default function Home() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [error, setError] = useState<string>('');
   const [isScrolled, setIsScrolled] = useState(false);
+ const [appName, setAppName] = useState("DUPRUN")
+
+    useEffect(() => {
+    fetch('/api/tenant')
+      .then(res => res.json())
+      .then(data => setAppName(data.appName))
+  }, [])
+
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -83,7 +91,7 @@ export default function Home() {
             <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
               <Sparkles className="w-6 h-6" />
             </div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">DUPRUN</h1>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">{appName}</h1>
           </div>
           <nav className="hidden md:flex items-center space-x-8">
             <Link href="/" className="text-gray-300 hover:text-white transition">Home</Link>
@@ -92,7 +100,7 @@ export default function Home() {
               onClick={handleGetStarted}
               className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2.5 rounded-full font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300 flex items-center gap-2 group"
             >
-              Try DUPRUN
+              Try {appName}
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
           </nav>
@@ -107,7 +115,7 @@ export default function Home() {
           </div>
           <h1 className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight">
             Create <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">Stunning</span>
-            <br />Zoom Videos with DUPRUN
+            <br />Zoom Videos with {appName}
           </h1>
           <p className="text-xl md:text-2xl text-gray-300 mb-10 max-w-3xl mx-auto leading-relaxed">
             Transform your images into engaging zoom videos with smooth transitions, custom zoom points, and background music in just a few clicks.
@@ -250,9 +258,9 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { name: 'Amit Sharma', role: 'Content Creator', text: 'DUPRUN made my tutorial videos look so professional with minimal effort. The zoom effects are a game-changer!' },
-              { name: 'Priya Patel', role: 'Educator', text: 'The ability to add music and export in WebM format is so smooth. DUPRUN is my go-to for quick video edits.' },
-              { name: 'Rahul Verma', role: 'Freelancer', text: 'Combining multiple images into one video was so easy. DUPRUN saved me hours of editing time!' }
+              { name: 'Amit Sharma', role: 'Content Creator', text: `${appName} made my tutorial videos look so professional with minimal effort. The zoom effects are a game-changer!` },
+              { name: 'Priya Patel', role: 'Educator', text: `The ability to add music and export in WebM format is so smooth. ${appName} is my go-to for quick video edits.` },
+              { name: 'Rahul Verma', role: 'Freelancer', text: `Combining multiple images into one video was so easy. ${appName} saved me hours of editing time!` }
             ].map((testimonial, idx) => (
               <div key={idx} className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:border-purple-500/50 transition-all duration-300">
                 <div className="flex gap-1 mb-4">
@@ -281,7 +289,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto text-center">
           <h2 className="text-4xl font-extrabold text-white mb-6">Ready to Create Your Next Video?</h2>
           <p className="text-xl text-gray-300 mb-10 max-w-3xl mx-auto">
-            Join thousands of creators using DUPRUN to make professional zoom videos effortlessly. Start now and see the difference!
+            Join thousands of creators using {appName} to make professional zoom videos effortlessly. Start now and see the difference!
           </p>
           <button
             onClick={handleGetStarted}
@@ -298,13 +306,13 @@ export default function Home() {
     <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
       {/* Left - Brand */}
       <div className="text-center sm:text-left">
-        <h3 className="text-lg font-semibold">DUPRUN</h3>
+        <h3 className="text-lg font-semibold">{appName}</h3>
         <p className="text-gray-400 text-sm">Create professional zoom videos effortlessly</p>
       </div>
 
       {/* Right - Copyright */}
       <div className="text-gray-500 text-sm text-center sm:text-right">
-        &copy; {new Date().getFullYear()} DUPRUN. All rights reserved.
+        &copy; {new Date().getFullYear()} {appName}. All rights reserved.
       </div>
     </div>
   </div>
